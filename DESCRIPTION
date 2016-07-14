@@ -1,18 +1,25 @@
 Package: streamit
 Type: Package
-Title: Streamline Routine Work
+Title: Streamline Routine Modeling Work
 Version: 0.1.0
 Author: Jianhua Huang
+Imports:
+    dplyr,
+    ggplot2,
+    gridExtra,
+    pec,
+    reshape2,
+    rpart,
+    survival
 Maintainer: jh.eco.cas@gmail.com
 Description: This package is designed to streamline the modeling work, especially
-for scoring. It provides some handy function to bin numerical variables, replace
-numerical variables with Weight of Evidence (WOE), ranking varialbes by Information
-Values (IV), plotting the successful/failure rates, check model performance based
-on AUC.This package also provides the useful function to convert the model output
-(e.g., coefficients) to graph/tables that are easier to understand for non-technical
-audience.
+    for scoring. It provides some handy function to bin numerical variables,
+    replace numerical variables with Weight of Evidence (WOE), ranking varialbes
+    by Information Values (IV), plotting the successful/failure rates, check model
+    performance based on AUC.This package also provides the useful function to
+    convert the model output (e.g., coefficients) to graph/tables that are easier
+    to understand for non-technical audience.
 License: What license is it under?
-LazyData: TRUE
+LazyData: GPL
 URL: http://github.com/JianhuaHuang/streamit
 BugReports: http://github.com/JianhuaHuang/streamit/issues
-Imports: dplyr, ggplot2, gridExtra, pec, reshape2, rpart, survival
