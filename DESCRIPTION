@@ -3,6 +3,7 @@ Type: Package
 Title: Streamline Routine Modeling Work
 Version: 0.1.0
 Author: Jianhua Huang
+Maintainer: Jianhua Huang <jh.eco.cas@gmail.com>
 Imports:
     dplyr,
     ggplot2,
@@ -10,7 +11,6 @@ Imports:
     pec,
     rpart,
     survival
-Maintainer: jh.eco.cas@gmail.com
 Description: This package is designed to streamline the modeling work, especially
     for scoring. It provides some handy function to bin numerical variables,
     replace numerical variables with Weight of Evidence (WOE), ranking varialbes
