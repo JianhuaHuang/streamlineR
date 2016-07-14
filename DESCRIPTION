@@ -8,7 +8,6 @@ Imports:
     ggplot2,
     gridExtra,
     pec,
-    reshape2,
     rpart,
     survival
 Maintainer: jh.eco.cas@gmail.com
