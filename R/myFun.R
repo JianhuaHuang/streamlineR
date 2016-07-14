@@ -61,26 +61,6 @@ paste.mat <- function(x, ...) {
 # paste.mat(df, '(', as.matrix(df), ')')
 # paste.mat(df, '_', 11:19)
 
-# this function performs basically the same as:
-# as.period(interval()) in the lubridate package
-# It is not much useful!
-# suv.time <- function(start.time, end.time, snapshot.time) {
-#   # calculate the survival month based on start time, end time, and snapshot time
-#   # if end is not NA, time = end.time - start.time;
-#   # if end is NA, time = snapshot.time - start.time;
-#   # The ceiling method is used to calculate the number of months, e.g.
-#   # 03-12 to 04-11 is one month, but 03-12 to 04-12 (and so on) is two months
-#   # Return:
-#   #    a vector of survival months
-#   sapply(1:length(start.time), function(t) {
-#     start <- start.time[t]
-#     end <- end.time[t]
-#     end[is.na(end)] <- as.Date(snapshot.time, '%m-%d-%Y')
-#
-#     survival.month <- length(seq(from = start, to = end, by = 'months'))
-#   })
-# }
-
 # ifelse prevent data type change
 ifelse.safe <- function(cond, yes, no) {
   # The ifelse function may change the returned data format (e.g., date -> num)

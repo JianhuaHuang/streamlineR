@@ -15,3 +15,4 @@ License: What license is it under?
 LazyData: TRUE
 URL: http://github.com/JianhuaHuang/streamit
 BugReports: http://github.com/JianhuaHuang/streamit/issues
+Imports: dplyr, ggplot2, gridExtra, pec, reshape2, rpart, survival
