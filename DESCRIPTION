@@ -8,3 +8,4 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 LazyData: TRUE
 URL: http://github.com/JianhuaHuang/streamit
+BugReports: http://github.com/JianhuaHuang/streamit/issues
