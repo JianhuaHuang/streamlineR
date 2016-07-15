@@ -1,8 +1,11 @@
 #   Build and Reload Package:  'Ctrl + Shift + B'
 #   Check Package:             'Ctrl + Shift + E'
 #   Test Package:              'Ctrl + Shift + T'
-sapply(c('ggplot2', 'dplyr', 'reshape2', 'pec', 'rpart', 'survival', 'gridExtra'),
-  require, character.only = T)
+
+# sapply(c('ggplot2', 'dplyr', 'reshape2', 'pec', 'rpart', 'survival', 'gridExtra'),
+#   require, character.only = TRUE)
+# sapply(c('ggplot2', 'dplyr', 'reshape2', 'pec', 'rpart', 'survival', 'gridExtra'),
+#   requireNamespace, quietly = TRUE)
 
 ############################# little functions #################################
 ## add.row
