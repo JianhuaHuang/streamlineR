@@ -116,8 +116,16 @@ bin.custom <- function(x, cut.p, names = NULL,
         }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
       levels(x.bins) <- bin.names
     }
-
   }
+  # if there is only one unique value in the level, change the x.bins to
+  # that value
+  x.bin.unique <- data.frame(x, x.bins) %>%
+    filter(!is.na(x)) %>%
+    group_by(x.bins) %>%
+    summarise(unique.x = length(unique(x)), min.x = min(x))
+
+  levels(x.bins) <- ifelse(x.bin.unique$unique.x == 1, x.bin.unique$min.x,
+    levels(x.bins))
 
   if(!is.null(names)) levels(x.bins) <- names # coerce to change levels
 
@@ -131,7 +139,7 @@ bin.custom <- function(x, cut.p, names = NULL,
 }
 # df <- data.frame(x = 1:100, y = sample(c(1, 0), 100, replace = T))
 # df <- data.frame(x = 1:100, y = rep(c(1, 0), each = 50))
-# bin.custom(df$x, cut.p = c(1, 10, 50), name.style = 'report')
+# bin.custom(x = c(1:50, NA, NA, 51:100), cut.p = c(1, 2, 99), name.style = 'report')
 # rs <- bin.custom(dt$Grad_Year_Month, as.yearmon(c('Aug 2012', 'Aug 2013')))
 
 # Optimzed binning
@@ -303,6 +311,7 @@ bin.rpart <- function(formula, data, n.group = NULL,
   #    rcontrol: the control used for rpart
 
   # The NA values are removed by the rpart function automatically
+  row.names(data) <- 1:nrow(data)
 
   vars <- all.vars(formula)
   x.num <- vars[length(vars)]
@@ -313,6 +322,7 @@ bin.rpart <- function(formula, data, n.group = NULL,
   }
 
   rp.tree <- rpart(formula, data, control = rcontrol, ...)
+  # rp.tree <- rpart(formula, data, control = rcontrol)
 
   ## if n.group is NULL, and no group is found, return 'No Bin'
   if(is.null(n.group) & length(unique(rp.tree$where)) == 1) {
@@ -325,6 +335,7 @@ bin.rpart <- function(formula, data, n.group = NULL,
     multipler <- ifelse(length(unique(rp.tree$where)) > median(n.group), 1.1, .9)
     rcontrol$cp <- rcontrol$cp * multipler
     rp.tree <- rpart(formula, data, control = rcontrol, ...)
+    # rp.tree <- rpart(formula, data, control = rcontrol)
   }
 
   tree.where <- data.frame(Where = rp.tree$where)
@@ -353,6 +364,11 @@ bin.rpart <- function(formula, data, n.group = NULL,
       bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
     }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
 
+  # check whether the Cut_Start and Cut_End are the same
+  # if the same, the <, =, or > signs is not needed
+  bin.names <- ifelse(tree.cut$Cut_Start[1:length(bin.names)] ==
+      tree.cut$Cut_End[1:length(bin.names)], tree.cut$Cut_End, bin.names)
+
   tree.cut$Bin <- 'Missing'
   tree.cut$Bin[1:length(bin.names)] <- bin.names
 
@@ -362,7 +378,9 @@ bin.rpart <- function(formula, data, n.group = NULL,
   return(list(cut.points = cut.p, bins = x.bins))
 }
 # dt <- read.csv('C:/Projects/AlumniConvProg/data/Data_Associate.csv')
-# rs <- bin.rpart(Progression ~ AGE, data = dt, n.group = 3:7)
+# bin.rpart(formula = Surv(Conversion_Time_Months, Conversion_Status) ~ WF_Count,
+#   rcontrol = rpart.control(cp = 0.0001, minbucket = nrow(dt.conv) * .01),
+#   data = dt.conv, n.group = 3:7)
 
 ## Rates by level
 level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
@@ -391,14 +409,24 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
     dt.iv <- table(dt) %>%
       as.data.frame.matrix %>%
       transmute(Variable = xx,
-        Group = row.names(.), Freq.0 = `0`, Freq.1 = `1`,
+        Group = row.names(.),
+        Freq.0 = `0`,
+        Freq.1 = `1`,
         Freq.total = Freq.0 + Freq.1,
         Freq.ratio = Freq.total / sum(Freq.total),
         Freq.perc = ifelse(Freq.ratio > .01,
           paste0(round(Freq.ratio * 100), '%'),
           paste0(round(Freq.ratio * 100, 1), '%')),
-        Rate.0 = Freq.0 / Freq.total, Rate.1 = Freq.1 / Freq.total,
-        Distr.0 = Freq.0 / sum(Freq.0), Distr.1 = Freq.1 / sum(Freq.1),
+        Rate.0 = Freq.0 / Freq.total,
+        Rate.1 = Freq.1 / Freq.total,
+        Perc.0 = ifelse(Rate.0 > .01,
+          paste0(round(Rate.0 * 100), '%'),
+          paste0(round(Rate.0 * 100, 1), '%')),
+        Perc.1 = ifelse(Rate.1 > .01,
+          paste0(round(Rate.1 * 100), '%'),
+          paste0(round(Rate.1 * 100, 1), '%')),
+        Distr.0 = Freq.0 / sum(Freq.0),
+        Distr.1 = Freq.1 / sum(Freq.1),
         WOE = log(Distr.1 / Distr.0),
         IV = sum((Distr.1 - Distr.0) * WOE))
   })
@@ -408,24 +436,21 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
     mutate(Variable.IV = paste0(Variable, ' (IV: ', round(IV, 3), ')'),
       Variable = factor(Variable, levels = unique(Variable)),
       Variable.IV = factor(Variable.IV, levels = unique(Variable.IV)),
-      Group = factor(Group, levels = unique(Group)))
+      Group = factor(Group,
+        levels = c(setdiff(unique(Group), 'Missing'), 'Missing')))
   return(rs)
 }
 
 ## ggplot the level.stat output by variable and level
-ggstat <- function(data, var = 'Variable.IV', x = 'Group',
-  y = 'Rate.1',  ratio.to.perc = T, y.min.0 = FALSE, y.title = NULL,
-  bar.width = 'Freq.ratio', bar.width.label = 'Freq.perc', n.col = NULL) {
+ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
+  y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Freq.ratio',
+  bar.width.label = 'Freq.perc', n.col = NULL) {
   # Plot the stat (statistics, e.g., Rate.1, Rate.0, and WOE) for each varaible
   # Args:
   #    data: the input dataset
   #    var: the varaibles plotted in different panel
   #    x: the variable used as x axis
   #    y: the varaible used as y axis
-  #    ratio.to.perc: whether to convert y from ratio (0.xx) to percentage(xx%)
-  #                   if true, the y values will be checked to make sure they
-  #                   are all within [0, 1]. If the y values are not within
-  #                   this range, the ratio.to.perc argument will be deprecated
   #    y.min.0: whether to plot the bar from 0
   #    y.title: the title for y axis
   #    bar.width: the column used to represent bar width. If NULL, the bar width
@@ -438,6 +463,13 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group',
 
   data$var = data[, var]
   data$x = data[, x]
+  data$y = data[, y]
+
+  if(is.null(y.label)) {
+    data$y.label = ''
+  } else {
+    data$y.label = data[, y.label]
+  }
 
   if(is.null(bar.width)) {
     data$bar.width = 0
@@ -451,22 +483,6 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group',
     data$bar.width.label = data[, bar.width.label]
   }
 
-  data$y = data[, y]
-  if(ratio.to.perc == TRUE & min(data[, y] >= 0) & max(data[, y] <= 1)) {
-    data$y = data[, y] * 100
-    data$y.label = paste0(round(data$y), '%')
-  } else {
-    if(ratio.to.perc == TRUE) {
-      warning('y is not all within [0, 1]. ratio.to.perc is deprecated')
-    }
-
-    if(class(data$y) == 'integer') {
-      data$y.label = data$y
-    } else {
-      data$y.label = round(data$y, 2)
-    }
-  }
-
   if(is.null(n.col)) n.col <- ceiling(sqrt(length(unique(data$var))))
 
   y.range <- max(data$y) - ifelse(y.min.0 == TRUE, 0, min(data$y))
@@ -477,8 +493,10 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group',
     facet_wrap(~ var, scale = 'free', ncol = n.col) +
     geom_bar(aes(width = bar.width + .1), stat = 'identity',
       fill = 'cornflowerblue', color = 'cornflowerblue') +
+    # geom_text(aes(y = y, label = y.label), size = 3, color = 'red',
+    #   vjust = ifelse(data$y > 0, -.25, .85)) +
     geom_text(aes(y = y, label = y.label), size = 3, color = 'red',
-      vjust = ifelse(data$y > 0, -.25, .85)) +
+      nudge_y = ifelse(data$y > 0, .06, -.06) * y.range) +
     geom_text(aes(y = y.min, label = bar.width.label), size = 3, vjust = 0) +
     labs(x = NULL, y = y.title) +
     scale_y_continuous(limits = c(y.min, y.max), oob = rescale_none) +
@@ -489,6 +507,8 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group',
       text = element_text(size = 10), strip.text = element_text(face = 'bold'),
       strip.background = element_blank())
 }
+# ggstat(lvs, y = 'Rate.1', y.label = 'Perc.1', bar.width = NULL)
+# ggstat(lvs, y = 'WOE', y.label = NULL)
 # ggstat(level.stat.prog, y.title = 'Progression Rate (%)')
 
 ## replace the categorical levels with their corresponding woe values
@@ -650,7 +670,7 @@ perf.auc <- function(model, train = NULL, test = NULL) {
 # perf.auc(model = cox.conv.aic, train = dt.conv.tr, test = dt.conv.test)
 # perf.auc(model = lg.prog.woe.aic, train = dt.train, test = dt.test)
 
-perf.decile <- function(actual, pred, plot = TRUE) {
+perf.decile <- function(actual, pred, plot = TRUE, add.legend = TRUE) {
   # check the model performance based on actual and predicted rates
   # Args:
   #    actual: a vector containing the actual status for each record
@@ -669,7 +689,7 @@ perf.decile <- function(actual, pred, plot = TRUE) {
   max.xy <- max(rate[, c('Predict.rate', 'Actual.rate')])
 
   p <- ggplot(rate, aes(x = Actual.rate, y = Predict.rate)) +
-    geom_point(aes(color = as.factor(Decile)), size = 4) +
+    geom_point(aes(color = as.factor(Decile)), size = 4, show.legend = add.legend) +
     geom_abline(slope = 1, linetype = 2) +
     coord_equal() +
     scale_x_continuous(limits = c(min.xy, max.xy)) +
@@ -768,7 +788,9 @@ coef2rate <- function(data, model, force.change = TRUE, level.stat.output,
     filter(!is.na(Pred.Rate.1)) %>%
     mutate(Variable = factor(Variable, levels = unique(Variable)),
       Group = factor(Group, levels = unique(Group)),
-      Variable.IV = factor(Variable.IV, levels = unique(Variable.IV))) %>%
+      Variable.IV = factor(Variable.IV, levels = unique(Variable.IV)),
+      Group = factor(Group,
+        levels = c(setdiff(unique(Group), 'Missing'), 'Missing'))) %>%
     data.frame
 
   return(pred.stat)
@@ -796,10 +818,10 @@ theme_simple <- function(...) {
 }
 
 # a ggplot theme similar to the figures published on the Wall Street Journal
-theme_ws <- function(...) {
+theme_ws <- function(background = 'ivory', ...) {
   theme_bw() +
     theme(axis.line.x = element_line(size = .5),
-      rect = element_rect(fill = 'ivory', linetype = 0, color = NA),
+      rect = element_rect(fill = background, linetype = 0, color = NA),
       panel.border = element_blank(),
       strip.text = element_text(family = 'sans', face = 'bold.italic'),
       strip.background = element_blank(),
@@ -811,7 +833,7 @@ theme_ws <- function(...) {
       panel.grid.major.y = element_line(linetype = 'dashed', color = 'grey50'),
       axis.ticks.y = element_blank(),
       panel.grid.minor = element_blank(),
-      panel.background = element_rect(fill = 'ivory'),
+      panel.background = element_rect(fill = background),
       ...)
 }
 # rr <- ggplot(mtcars) + geom_point(aes(x = wt, y = mpg, colour=factor(gear)))

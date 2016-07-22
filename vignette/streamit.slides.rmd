@@ -1,0 +1,101 @@
+---
+title: "Streamline Rountine Modeling Work in R: streamit"
+author: "Jianhua Huang"
+date: "July 27, 2016"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+library(knitr)
+library(caret)
+library(dplyr)
+library(rpart)
+library(rattle)
+library(survival)
+library(gridExtra)
+library(ggplot2)
+library(scales)
+
+dir <- 'F:/Projects/Rpackage/streamit'
+opts_chunk$set(echo = TRUE, root.dir = dir)
+source('F:/Projects/Rpackage/streamit/R/myFun.R')
+```
+
+
+## Data Preparation
+```{r}
+dt <- survival::pbc %>%
+  transmute(age = round(age), sex, platelet, stage = as.character(stage), 
+    time, status = as.numeric(status %in% c(1, 2)))
+dim(dt)
+str(dt)
+kable(head(dt))
+```
+
+
+## Split Data into Training and Test datasets
+```{r}
+set.seed(12345)
+ind.train <- createDataPartition(dt$status, p = .7, list = FALSE)
+dt.train <- dt[ind.train, ]
+dt.test <- dt[-ind.train, ]
+dim(dt.train)
+dim(dt.test)
+```
+
+## Binning Based on rpart (recursive partitioning)
+```{r}
+rpart(formula = status ~ age, data = dt.train, 
+  control = rpart.control(minbucket = .05 * nrow(dt.train)))
+```
+
+**Binning for Logistic Model**
+```{r}
+lg.bin.age <- bin.rpart(formula = status ~ age, data = dt.train, 
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))
+```
+
+
+**Binning for Survival Model**
+```{r}
+surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))
+
+surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)), n.group = 3:6)
+```
+
+
+**Replace numerical Varialbes with Bins**
+```{r}
+dt.train$age <- lg.bin.age$bins
+
+lg.bin.platelet <- bin.rpart(formula = status ~ platelet, data = dt.train, 
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))
+
+dt.train$platelet <- lg.bin.platelet$bins
+```
+
+## Level Statistics (Population, Rate, WOE, and IV)
+```{r}
+lvs <- level.stat(dt.train, x = c('age', 'sex', 'platelet'), y = 'status')
+head(lvs)
+```
+
+## Visualizing Level Statistics
+```{r}
+ggstat(lvs)
+```
+
+** Use Constant Bar Width**
+```{r}
+ggstat(lvs, bar.width = NULL)
+```
+
+** Plot WOE **
+```{r}
+lvs$WOE.round <- round(lvs$WOE, 2)
+ggstat(lvs, y = 'WOE', y.label = 'WOE.round', bar.width = NULL)
+```
+
