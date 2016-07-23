@@ -5,6 +5,7 @@ Version: 0.1.0
 Author: Jianhua Huang
 Maintainer: Jianhua Huang <jh.eco.cas@gmail.com>
 Depends:
+    corrplot,
     dplyr,
     ggplot2,
     gridExtra,

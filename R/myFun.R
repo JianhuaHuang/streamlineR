@@ -412,19 +412,19 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
         Group = row.names(.),
         Freq.0 = `0`,
         Freq.1 = `1`,
-        Freq.total = Freq.0 + Freq.1,
-        Freq.ratio = Freq.total / sum(Freq.total),
-        Freq.perc = ifelse(Freq.ratio > .01,
-          paste0(round(Freq.ratio * 100), '%'),
-          paste0(round(Freq.ratio * 100, 1), '%')),
-        Rate.0 = Freq.0 / Freq.total,
-        Rate.1 = Freq.1 / Freq.total,
+        Freq.group = Freq.0 + Freq.1,
+        Rate.0 = Freq.0 / Freq.group,
+        Rate.1 = Freq.1 / Freq.group,
+        Rate.group = Freq.group / sum(Freq.group),
         Perc.0 = ifelse(Rate.0 > .01,
           paste0(round(Rate.0 * 100), '%'),
           paste0(round(Rate.0 * 100, 1), '%')),
         Perc.1 = ifelse(Rate.1 > .01,
           paste0(round(Rate.1 * 100), '%'),
           paste0(round(Rate.1 * 100, 1), '%')),
+        Perc.group = ifelse(Rate.group > .01,
+          paste0(round(Rate.group * 100), '%'),
+          paste0(round(Rate.group * 100, 1), '%')),
         Distr.0 = Freq.0 / sum(Freq.0),
         Distr.1 = Freq.1 / sum(Freq.1),
         WOE = log(Distr.1 / Distr.0),
@@ -443,23 +443,23 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
 
 ## ggplot the level.stat output by variable and level
 ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
-  y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Freq.ratio',
-  bar.width.label = 'Freq.perc', n.col = NULL) {
+  y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Rate.group',
+  bar.width.label = 'Perc.group', n.col = NULL) {
   # Plot the stat (statistics, e.g., Rate.1, Rate.0, and WOE) for each varaible
   # Args:
   #    data: the input dataset
   #    var: the varaibles plotted in different panel
   #    x: the variable used as x axis
   #    y: the varaible used as y axis
+  #    y.label: the text used to label the y value
   #    y.min.0: whether to plot the bar from 0
   #    y.title: the title for y axis
   #    bar.width: the column used to represent bar width. If NULL, the bar width
   #               is set to 0.1
   #    bar.width.label: the column used to label the bar.width. If NULL, it is
   #                     not labelled.
-  #    n.col: number of column for the panels
-  # Return:
-  #    a ggplot
+  #    n.col: number of panel column
+  # Return: ggplot
 
   data$var = data[, var]
   data$x = data[, x]
@@ -582,7 +582,7 @@ km.curve <- function(data, time, status, x, plot = TRUE) {
 # sf <- km.curve(data = dt.conv, time = 'Conversion_Time_Months',
 #   status = 'Conversion_Status', x = col.x[1:6], plot = TRUE)
 
-perf.auc <- function(model, train = NULL, test = NULL) {
+perf.auc <- function(model, train, test) {
   # check the coxph or logistic (glm) model performance based on AUC
   # For coxph model, the time-dependent AUC and the iAUC (integrated AUC)
   # is calculated and plotted. For logistic (glm) model, the ROC curve is plotted
@@ -683,7 +683,7 @@ perf.decile <- function(actual, pred, plot = TRUE, add.legend = TRUE) {
     mutate(Decile = rep(1:10, table(cut(1:nrow(.), 10)))) %>%
     group_by(Decile) %>%
     summarise(Actual.rate = mean(Actual)* 100, Predict.rate = mean(Predict) * 100,
-      Freq.1 = sum(Actual), Freq.0 = n() - Freq.1,  Freq.total = n())
+      Freq.1 = sum(Actual), Freq.0 = n() - Freq.1,  Freq.group = n())
 
   min.xy <- min(rate[, c('Predict.rate', 'Actual.rate')])
   max.xy <- max(rate[, c('Predict.rate', 'Actual.rate')])
@@ -725,7 +725,7 @@ survexp.obo <- function(data, ratetable, ...) {
 # rs <- survexp.obo(data = dt.conv.test, ratetable = cox.conv.train)
 
 ## conver the regression coefficients to meaningful rates
-coef2rate <- function(data, model, force.change = TRUE, level.stat.output,
+coef2rate <- function(data, model, level.stat.output, force.change = TRUE,
   time = NULL) {
   xs <- labels(model$terms)
 
