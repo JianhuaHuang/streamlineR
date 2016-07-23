@@ -59,8 +59,8 @@ head(dt)
 
 
 ## Split Data into Training and Test datasets
+Before doing any analysis, let's hold out some data as testing dataset. The `createDataPartition` function (from `caret` package) is used to split the data into training and test datasets. 
 ```{r}
-# set.seed(123456)
 set.seed(1111)
 ind.train <- createDataPartition(dt$status, p = .7, list = FALSE)
 dt.train <- dt[ind.train, ]

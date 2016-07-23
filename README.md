@@ -83,8 +83,9 @@ head(dt)
 Split Data into Training and Test datasets
 ------------------------------------------
 
+Before doing any analysis, let's hold out some data as testing dataset. The `createDataPartition` function (from `caret` package) is used to split the data into training and test datasets.
+
 ``` r
-# set.seed(123456)
 set.seed(1111)
 ind.train <- createDataPartition(dt$status, p = .7, list = FALSE)
 dt.train <- dt[ind.train, ]
@@ -458,7 +459,7 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
     ## Source: local data frame [10 x 6]
     ## 
     ##    Decile Actual.rate Predict.rate Freq.1 Freq.0 Freq.group
-    ##     <int>       <dbl>        <dbl>  <dbl>  <dbl>      <int>
+    ##     (int)       (dbl)        (dbl)  (dbl)  (dbl)      (int)
     ## 1       1    6.666667     10.11034     20    280        300
     ## 2       2   33.333333     25.05685    100    200        300
     ## 3       3   17.666667     30.32782     53    247        300
