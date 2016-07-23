@@ -3,43 +3,42 @@ Streamline Rountine Modeling Work in R: streamit
 
 This package is designed to streamline the routine modeling work, especially for scoring. It provides some handy functions to bin numerical variables, replace numerical variables with Weight of Evidence (WOE), ranking varialbes by Information Values (IV), plotting the successful/failure rates, check model performance based on AUC, and so on.This package also provides the useful function to convert the model output (e.g., coefficients) to graph/tables that are easier to understand for non-technical audience.
 
+The following example illustrates how to use the streamit package to prepare data, build models, and generate figures.
+
 R Setup
 -------
 
-``` r
-rm(list = ls())
-# If you don't have these packages, install them. 
-# once the packages are installed, you don't need to run the code again
-# choose mirror to download R packages, in case the default one is blocked
-# chooseCRANmirror()  
-# sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
-#   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'),
-#   install.packages)
+This analysis relies on other packages. If these packges are not available yet in your computer, you need to install them with the following commands.
 
+``` r
+# in case the default mirror is blocked in your domain, choose another one
+chooseCRANmirror()  
+sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
+  'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'),
+  install.packages)
+```
+
+After installing these packages, you need to load them into R, and use the `install_github` function in the `devtools` package to install the `streamit` package on github.
+
+``` r
 # Load packages
-sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
-  'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'), 
+sapply(c('caret', 'corrplot', 'devtools', 'dplyr','e1071', 'gridExtra', 'knitr',
+  'MASS', 'pec', 'pROC', 'rpart',  'reshape2', 'scales', 'survival'), 
   require, character.only = TRUE)
 ```
 
-    ##     dplyr     caret     e1071     knitr  reshape2  corrplot     rpart 
+    ##     caret  corrplot  devtools     dplyr     e1071 gridExtra     knitr 
     ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE 
-    ##    scales  survival gridExtra  devtools       pec      MASS      pROC 
+    ##      MASS       pec      pROC     rpart  reshape2    scales  survival 
     ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE
 
 ``` r
 # install the streamit package via github
-install_github('JianhuaHuang/streamit')  # remove the leading "#" to run
+install_github('JianhuaHuang/streamit')
 library(streamit)
-
-# dir <- 'F:/Projects/Rpackage/streamit'
-dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamit'
-
-opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
 ```
 
-Data Preparation
-----------------
+In this example, I analyzed the primary biliary cirrhosis (PBC) dataset from the survival package. The details of this dataset is availalble [here](https://stat.ethz.ch/R-manual/R-devel/library/survival/html/pbc.html), or you can run `?survival::pbc` to find the data description within R. \#\# Data Preparation
 
 ``` r
 dt <- survival::pbc %>%
@@ -240,13 +239,7 @@ ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   bar.width.label = 'Perc.group', n.col = NULL)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-8-1.png)
-
-``` r
-ggstat(stat.train)
-```
-
-![](README_files/figure-markdown_github/unnamed-chunk-8-2.png)
+![](README_files/figure-markdown_github/unnamed-chunk-9-1.png)
 
 **Constant Bar Width**
 
@@ -254,7 +247,7 @@ ggstat(stat.train)
 ggstat(stat.train, bar.width = NULL)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
 **Plot WOE**
 
@@ -264,7 +257,7 @@ ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL,
   bar.width.label = NULL, n.col = 4)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-11-1.png)
 
 Replace Bins with WOE: `replace.woe`
 ------------------------------------
@@ -311,7 +304,7 @@ cor.mat <- cor(dt.train[, col.x])
 corrplot.beautify(cor.mat)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-12-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-13-1.png)
 
 Logistic Model
 --------------
@@ -448,7 +441,7 @@ Model Performance: `perf.auc & perf.decile`
 perf.auc(model = lg.aic, dt.train, dt.test)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-16-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-17-1.png)
 
 **Check Performance Based on Decile Rate**: `perf.decile`
 
@@ -457,7 +450,7 @@ pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
 perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-18-1.png)
 
     ## Source: local data frame [10 x 6]
     ## 
@@ -530,4 +523,4 @@ pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-18-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-19-1.png)

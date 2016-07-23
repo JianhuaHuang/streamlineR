@@ -10,6 +10,7 @@ Depends:
     ggplot2,
     gridExtra,
     pec,
+    pROC,
     rpart,
     reshape2,
     survival
