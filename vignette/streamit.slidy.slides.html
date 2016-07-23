@@ -59,7 +59,11 @@ Jianhua Huang
 </div>
 <div id="data-preparation" class="slide section level2">
 <h1>Data Preparation</h1>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dt &lt;-<span class="st"> </span>survival::pbc %&gt;%
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># chooseCRANmirror()  # choose another mirror to download R packages, if blocked</span>
+<span class="co"># install_github('JianhuaHuang/streamit')</span>
+<span class="kw">library</span>(streamit)
+
+dt &lt;-<span class="st"> </span>survival::pbc %&gt;%
 <span class="st">  </span><span class="kw">transmute</span>(<span class="dt">age =</span> <span class="kw">round</span>(age), <span class="dt">gender =</span> sex, platelet, <span class="dt">stage =</span> <span class="kw">as.character</span>(stage), 
     time, <span class="dt">status =</span> <span class="kw">as.numeric</span>(status %in%<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))) %&gt;%
 <span class="st">  </span><span class="kw">filter</span>(!<span class="kw">is.na</span>(stage))
@@ -364,7 +368,29 @@ dt.test$platelet &lt;-<span class="st"> </span><span class="kw">bin.custom</span
 <h1>Convert Coefficients to Rate: <code>coef2rate</code></h1>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pred.stat &lt;-<span class="st"> </span><span class="kw">coef2rate</span>(<span class="dt">data =</span> dt.test, <span class="dt">model =</span> lg.aic, 
   <span class="dt">level.stat.output =</span> stat.train, <span class="dt">force.change =</span> <span class="ot">TRUE</span>)
-pred.stat[,<span class="kw">c</span>(<span class="st">'Rate.1'</span>, <span class="st">'Pred.Rate.1'</span>)]</code></pre></div>
+<span class="kw">head</span>(pred.stat)</code></pre></div>
+<pre><code>##   Variable          Group Freq.0 Freq.1 Freq.group    Rate.0     Rate.1
+## 1    stage              1    337     25        362 0.9309392 0.06906077
+## 2    stage              2   1034    456       1490 0.6939597 0.30604027
+## 3    stage              3   1669   1016       2685 0.6216015 0.37839851
+## 4    stage              4    868   1595       2463 0.3524158 0.64758425
+## 5 platelet         &lt;= 160    464    705       1169 0.3969204 0.60307956
+## 6 platelet 160 &lt; · &lt;= 240   1082    871       1953 0.5540195 0.44598054
+##   Rate.group Perc.0 Perc.1 Perc.group    Distr.0     Distr.1         WOE
+## 1 0.05171429    93%     7%         5% 0.08623337 0.008085382 -2.36699950
+## 2 0.21285714    69%    31%        21% 0.26458547 0.147477361 -0.58448964
+## 3 0.38357143    62%    38%        38% 0.42707267 0.328589909 -0.26214369
+## 4 0.35185714    35%    65%        35% 0.22210850 0.515847348  0.84264490
+## 5 0.16700000    40%    60%        17% 0.11873081 0.228007762  0.65252085
+## 6 0.27900000    55%    45%        28% 0.27686796 0.281694696  0.01728312
+##          IV          Variable.IV WOE.round Pred.Rate.1
+## 1 0.5267589    stage (IV: 0.527)     -2.37  0.09452027
+## 2 0.5267589    stage (IV: 0.527)     -0.58  0.32716770
+## 3 0.5267589    stage (IV: 0.527)     -0.26  0.38981254
+## 4 0.5267589    stage (IV: 0.527)      0.84  0.61801045
+## 5 0.2525191 platelet (IV: 0.253)      0.65  0.57420979
+## 6 0.2525191 platelet (IV: 0.253)      0.02  0.44853001</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pred.stat[,<span class="kw">c</span>(<span class="st">'Rate.1'</span>, <span class="st">'Pred.Rate.1'</span>)]</code></pre></div>
 <pre><code>##        Rate.1 Pred.Rate.1
 ## 1  0.06906077  0.09452027
 ## 2  0.30604027  0.32716770

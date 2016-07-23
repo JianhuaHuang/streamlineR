@@ -1,38 +1,43 @@
 ---
-title: 'Streamline Rountine Modeling Work in R: streamit'
+title: "Untitled"
 author: "Jianhua Huang"
-date: "July 27, 2016"
+date: "July 23, 2016"
 output:
-  slidy_presentation: default
-  beamer_presentation: default
+  md_document:
+    variant: markdown_github
 ---
 
-```{r setup, include=FALSE}
+This package is designed to streamline the routine modeling work, especially for scoring. It provides some handy functions to bin numerical variables, replace numerical variables with Weight of Evidence (WOE), ranking varialbes by Information Values (IV), plotting the successful/failure rates, check model performance based on AUC, and so on.This package also provides the useful function to convert the model output (e.g., coefficients) to graph/tables that are easier to understand for non-technical audience.
+
+R Setup
+```{r setup, warning=FALSE, message=FALSE, include=FALSE}
 rm(list = ls())
 # If you don't have these packages, install them. 
 # once the packages are installed, you don't need to run the code again
+# choose mirror to download R packages, in case the default one is blocked
+# chooseCRANmirror()  
 # sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
-#   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS'), install.packages)
+#   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'),
+#   install.packages)
 
-# Load these pacakges
+# Load packages
 sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'), 
   require, character.only = TRUE)
 
+# install the streamit package via github
+# install_github('JianhuaHuang/streamit')  # remove the "#" at to run this line
+library(streamit)
+
 # dir <- 'F:/Projects/Rpackage/streamit'
-# source('F:/Projects/Rpackage/streamit/R/myFun.R')
 dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamit'
-source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamit/R/myFun.R')
+
 opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
 ```
 
 
 ## Data Preparation
 ```{r}
-# chooseCRANmirror()  # choose another mirror to download R packages, if blocked
-# install_github('JianhuaHuang/streamit')
-library(streamit)
-
 dt <- survival::pbc %>%
   transmute(age = round(age), gender = sex, platelet, stage = as.character(stage), 
     time, status = as.numeric(status %in% c(1, 2))) %>%
