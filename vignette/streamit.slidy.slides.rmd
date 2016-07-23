@@ -10,7 +10,7 @@ output:
 ```{r setup, include=FALSE}
 rm(list = ls())
 # If you don't have these packages, install them. 
-# once the packages are installed, you don't need to run the code again
+# once the packages are installed, you don'Bt need to run the code again
 # sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
 #   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS'), install.packages)
 

@@ -1,6 +1,42 @@
+Streamline Rountine Modeling Work in R: streamit
+================================================
+
 This package is designed to streamline the routine modeling work, especially for scoring. It provides some handy functions to bin numerical variables, replace numerical variables with Weight of Evidence (WOE), ranking varialbes by Information Values (IV), plotting the successful/failure rates, check model performance based on AUC, and so on.This package also provides the useful function to convert the model output (e.g., coefficients) to graph/tables that are easier to understand for non-technical audience.
 
 R Setup
+-------
+
+``` r
+rm(list = ls())
+# If you don't have these packages, install them. 
+# once the packages are installed, you don't need to run the code again
+# choose mirror to download R packages, in case the default one is blocked
+# chooseCRANmirror()  
+# sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
+#   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'),
+#   install.packages)
+
+# Load packages
+sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
+  'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'), 
+  require, character.only = TRUE)
+```
+
+    ##     dplyr     caret     e1071     knitr  reshape2  corrplot     rpart 
+    ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE 
+    ##    scales  survival gridExtra  devtools       pec      MASS      pROC 
+    ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE
+
+``` r
+# install the streamit package via github
+install_github('JianhuaHuang/streamit')  # remove the leading "#" to run
+library(streamit)
+
+# dir <- 'F:/Projects/Rpackage/streamit'
+dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamit'
+
+opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
+```
 
 Data Preparation
 ----------------
