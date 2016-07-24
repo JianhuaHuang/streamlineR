@@ -4,7 +4,8 @@ author: "Jianhua Huang"
 date: "July 23, 2016"
 output: 
   md_document:
-    variant: markdown_github
+    toc: true
+    variant: markdown_strict+backtick_code_blocks+autolink_bare_uris
 ---
 
 ```{r,set.options, include=FALSE}
