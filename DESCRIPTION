@@ -1,4 +1,4 @@
-Package: streamit
+Package: streamlineR
 Type: Package
 Title: Streamline Routine Modeling Work
 Version: 0.1.0
@@ -23,5 +23,5 @@ Description: This package is designed to streamline the modeling work, especiall
     to understand for non-technical audience.
 License: What license is it under?
 LazyData: GPL
-URL: http://github.com/JianhuaHuang/streamit
-BugReports: http://github.com/JianhuaHuang/streamit/issues
+URL: http://github.com/JianhuaHuang/streamlineR
+BugReports: http://github.com/JianhuaHuang/streamlineR/issues

@@ -1,24 +1,24 @@
 ---
-title: "Streamline Rountine Modeling Work in R: streamit"
+title: "Streamline Rountine Modeling Work in R: streamlineR"
 author: "Jianhua Huang"
 date: "July 23, 2016"
 output: 
   md_document:
     toc: true
-    variant: markdown_strict+backtick_code_blocks+autolink_bare_uris
+    variant: markdown_github
 ---
 
 ```{r,set.options, include=FALSE}
-# dir <- 'F:/Projects/Rpackage/streamit'
-dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamit'
+# dir <- 'F:/Projects/Rpackage/streamlineR'
+dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR'
 knitr::opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
 ```
 
 
-# Streamline Rountine Modeling Work in R: streamit
+# Streamline Rountine Modeling Work in R: streamlineR
 This package is designed to streamline the routine modeling work, especially for scoring. It provides some handy functions to bin numerical variables, replace numerical variables with Weight of Evidence (WOE), ranking varialbes by Information Values (IV), plotting the successful/failure rates, check model performance based on AUC, and so on.This package also provides the useful function to convert the model output (e.g., coefficients) to graph/tables that are easier to understand for non-technical audience.
 
-The following example illustrates how to use the streamit package to prepare data, build models, and generate figures. 
+The following example illustrates how to use the `streamlineR` package to prepare data, build models, and generate figures. 
 
 ## R Setup
 This analysis relies on other packages. If these packges are not available yet in your computer, you need to install them with the following commands.
@@ -30,16 +30,17 @@ sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
   install.packages)
 ```
 
-After installing these packages, you need to load them into R, and use the `install_github` function in the `devtools` package to install the `streamit` package on github. 
+After installing these packages, you need to load them into R, and use the `install_github` function in the `devtools` package to install the `streamlineR` package on github. 
 ```{r}
 # Load packages
 sapply(c('caret', 'corrplot', 'devtools', 'dplyr','e1071', 'gridExtra', 'knitr',
   'MASS', 'pec', 'pROC', 'rpart',  'reshape2', 'scales', 'survival'), 
   require, character.only = TRUE)
 
-# install the streamit package via github
-install_github('JianhuaHuang/streamit')
-library(streamit)
+# install the streamlineR package via github
+# install_github('JianhuaHuang/streamlineR')
+source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR/R/myFun.R')
+# library(streamit)
 ```
 
 In this example, I analyzed the primary biliary cirrhosis (PBC) dataset from the survival package. The details of this dataset is availalble [here](https://stat.ethz.ch/R-manual/R-devel/library/survival/html/pbc.html), or you can run  `?survival::pbc` to find the data description within R. Because the sample size is a little small, I increased the sample size by resampling the data 10000 times. 

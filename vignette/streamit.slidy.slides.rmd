@@ -1,5 +1,5 @@
 ---
-title: 'Streamline Rountine Modeling Work in R: streamit'
+title: 'Streamline Rountine Modeling Work in R: streamlineR'
 author: "Jianhua Huang"
 date: "July 27, 2016"
 output:
@@ -19,10 +19,10 @@ sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'), 
   require, character.only = TRUE)
 
-# dir <- 'F:/Projects/Rpackage/streamit'
-# source('F:/Projects/Rpackage/streamit/R/myFun.R')
-dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamit'
-source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamit/R/myFun.R')
+# dir <- 'F:/Projects/Rpackage/streamlineR'
+# source('F:/Projects/Rpackage/streamlineR/R/myFun.R')
+dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR'
+source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR/R/myFun.R')
 opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
 ```
 
@@ -30,8 +30,8 @@ opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
 ## Data Preparation
 ```{r}
 # chooseCRANmirror()  # choose another mirror to download R packages, if blocked
-# install_github('JianhuaHuang/streamit')
-library(streamit)
+# install_github('JianhuaHuang/streamlineR')
+library(streamlineR)
 
 dt <- survival::pbc %>%
   transmute(age = round(age), gender = sex, platelet, stage = as.character(stage), 
