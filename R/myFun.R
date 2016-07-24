@@ -301,8 +301,7 @@ bin.knn <- function(data, x.num, y) {
 #   x.num = c('GPA', 'Completed_Courses'))
 
 ## rpart.bin
-bin.rpart <- function(formula, data, n.group = NULL,
-  rcontrol = rpart.control(), ...) {
+bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL, ...) {
   # This function is used to bin the numerical variable for survival model
   # Arg:
   #    formula: the formula used for rpart
@@ -317,9 +316,9 @@ bin.rpart <- function(formula, data, n.group = NULL,
   x.num <- vars[length(vars)]
 
   # if the minbucket is the default value 7, then update it to 1% of the data
-  if(rcontrol$minbucket == 7) {
-    rcontrol$minbucket <- .01 * nrow(data)
-  }
+  # if(rcontrol$minbucket == 7) {
+  #   rcontrol$minbucket <- .01 * nrow(data)
+  # }
 
   rp.tree <- rpart(formula, data, control = rcontrol, ...)
   # rp.tree <- rpart(formula, data, control = rcontrol)

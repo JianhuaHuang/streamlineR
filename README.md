@@ -110,6 +110,10 @@ rm(dt)
 Binning Based on rpart: `bin.rpart`
 -----------------------------------
 
+The numerical varialbes(age and platelet) in the training dataset are binned into different groups based on optimal binning. The `bin.rpart` function is used perform the optimal binning. The `bin.rpart` uses the `rpart` (recursive partitioning, a famous decision tree algorithm) method to find the optimal cut points. Based on these cut points, the numerical data is divided into different groups.
+
+The usage of `bin.rpart` is very similar `rpart`, except that the *control* argument in `rpart` is named as *rcontrol* in `bin.rpart`. The following `rpart` and `bin.rpart` functions should generate the same cut points for **age**.
+
 ``` r
 rpart(formula = status ~ age, data = dt.train, 
   control = rpart.control(minbucket = .05 * nrow(dt.train)))
@@ -126,7 +130,7 @@ rpart(formula = status ~ age, data = dt.train,
     ##     5) age>=45.5 4239 1053.5970 0.4619014 *
     ##   3) age>=66.5 520  113.7231 0.6769231 *
 
-**Binning for Logistic Model**
+#### Binning for Logistic Model
 
 ``` r
 lg.bin.age <- bin.rpart(formula = status ~ age, data = dt.train, 
@@ -134,6 +138,8 @@ lg.bin.age <- bin.rpart(formula = status ~ age, data = dt.train,
 ```
 
     ## age : 45 66
+
+In addition to cut points, the `bin.rpart` function also generates the bins, corresponding to the numerical values. Both the cut points and bins are saved in the output as a list.
 
 ``` r
 str(lg.bin.age)
@@ -143,6 +149,8 @@ str(lg.bin.age)
     ##  $ cut.points: num [1:2] 45 66
     ##  $ bins      : Factor w/ 3 levels "<= 45","45 < · <= 66",..: 2 2 1 2 2 2 2 2 2 2 ...
 
+Similarly, we can bin another numerical varialbes (**platelet**).
+
 ``` r
 lg.bin.platelet <- bin.rpart(formula = status ~ platelet, data = dt.train, 
   rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))
@@ -150,7 +158,9 @@ lg.bin.platelet <- bin.rpart(formula = status ~ platelet, data = dt.train,
 
     ## platelet : 160 240 259 344
 
-**Binning for Survival Model**
+#### Binning for Survival Model
+
+Compared to other packages (such as `smbinning` and `woe`) that only provides binning for logistic model, `bin.rpart` can provide the optimal binning for all models that can be passed to the `rpart` function. For example, the `bin.rpart` function can generate the optimal cut points of **age** in a survival model, if we change the dependent varialbe to a survival object (`Surv(time, status)`) in the formula.
 
 ``` r
 surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
@@ -159,12 +169,16 @@ surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 
     ## age : 65
 
+By default, the cp (complexity parameter used to control `rpart`. The detail of the *cp* argument can be checked with `?rpart.control`) is set as 0.01, which is a little conservative for the survival model. Thus the number of cut points is usually small for the survival model, if we use the default *cp* value. We can reduce the *cp* value (e.g., 0.001) to get more cut points. We may be able to achieve an appropriate number of cut points by changing the *cp* arguemnt repeatingly.
+
 ``` r
 surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
   rcontrol = rpart.control(cp  = .001, minbucket = .05 * nrow(dt.train)))  
 ```
 
     ## age : 34 40 42 45 48 50 54 58 65
+
+In stead of changing the *cp* argument manually, the *n.group* (number of acceptable binning groups, can be a single number or a range) argument can help to find the appropriate number of cut points automatically. For example, if we set the acceptable *n.group* as 3:7, the `bin.rpart` function will try different *cp*, until the number of binning groups is within 3 to 7 (or the number of cut points within 2:6).
 
 ``` r
 surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
@@ -173,26 +187,21 @@ surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 
     ## age : 45 65
 
-**Replace numerical Varialbes with Bins**
-
 ``` r
+# remove the time column. We only use it to illustrate the binning for survival 
+# model. After that, we don't need the time column any more. 
 dt.train <- dplyr::select(dt.train, -time)
 dt.test <- dplyr::select(dt.test, -time)
-head(dt.train)
 ```
 
-    ##   age gender platelet stage status
-    ## 1  53      f      344     4      0
-    ## 2  53      f      361     3      0
-    ## 3  43      f      214     3      0
-    ## 4  61      f      233     4      1
-    ## 5  59      f      190     4      1
-    ## 6  62      f      234     2      0
+#### Replace numerical Varialbes with Bins
+
+After binning, we can replace the original numerical values with the corresponding bins saved in the outputs.
 
 ``` r
 dt.train$age <- lg.bin.age$bins
 dt.train$platelet <- lg.bin.platelet$bins
-head(dt.train)
+head(dt.train)  # Now, the data should not contain any numerical dependent variable
 ```
 
     ##            age gender       platelet stage status
@@ -243,17 +252,17 @@ ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   bar.width.label = 'Perc.group', n.col = NULL)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-13-1.png)
 
-**Constant Bar Width**
+#### Constant Bar Width
 
 ``` r
 ggstat(stat.train, bar.width = NULL)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)
 
-**Plot WOE**
+#### Plot WOE
 
 ``` r
 stat.train$WOE.round <- round(stat.train$WOE, 2)
@@ -261,7 +270,7 @@ ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL,
   bar.width.label = NULL, n.col = 4)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-15-1.png)
 
 Replace Bins with WOE: `replace.woe`
 ------------------------------------
@@ -308,7 +317,7 @@ cor.mat <- cor(dt.train[, col.x])
 corrplot.beautify(cor.mat)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-13-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-17-1.png)
 
 Logistic Model
 --------------
@@ -393,7 +402,7 @@ summary(lg.aic)
 Preparing Test Data: `bin.custom & replace.woe`
 -----------------------------------------------
 
-**Bin Test Data**: `bin.custom`
+#### Bin Test Data: `bin.custom`
 
 ``` r
 head(dt.test)
@@ -421,7 +430,7 @@ head(dt.test)
     ## 5 45 < · <= 66      f 160 < · <= 240     3      0
     ## 6        <= 45      m        Missing     1      0
 
-**Replace Binned Test Data with WOE**: `replace.woe`
+#### Replace Binned Test Data with WOE: `replace.woe`
 
 ``` r
 dt.test <- replace.woe(dt.test, level.stat.output = stat.train, replace = TRUE)
@@ -439,27 +448,27 @@ head(dt.test)
 Model Performance: `perf.auc & perf.decile`
 -------------------------------------------
 
-**Check Performance Based on AUC**: `perf.auc`
+#### Check Performance Based on AUC: `perf.auc`
 
 ``` r
 perf.auc(model = lg.aic, dt.train, dt.test)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-21-1.png)
 
-**Check Performance Based on Decile Rate**: `perf.decile`
+#### Check Performance Based on Decile Rate: `perf.decile`
 
 ``` r
 pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
 perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-18-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-22-1.png)
 
     ## Source: local data frame [10 x 6]
     ## 
     ##    Decile Actual.rate Predict.rate Freq.1 Freq.0 Freq.group
-    ##     (int)       (dbl)        (dbl)  (dbl)  (dbl)      (int)
+    ##     <int>       <dbl>        <dbl>  <dbl>  <dbl>      <int>
     ## 1       1    6.666667     10.11034     20    280        300
     ## 2       2   33.333333     25.05685    100    200        300
     ## 3       3   17.666667     30.32782     53    247        300
@@ -527,4 +536,4 @@ pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-19-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-23-1.png)
