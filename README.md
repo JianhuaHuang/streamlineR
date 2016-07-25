@@ -1,28 +1,24 @@
--   [Streamline Rountine Modeling Work in R: streamlineR](#streamline-rountine-modeling-work-in-r-streamliner)
-    -   [R Setup](#r-setup)
-    -   [Data Preparation](#data-preparation)
-    -   [Split Data into Training and Test datasets](#split-data-into-training-and-test-datasets)
-    -   [Binning Based on rpart: `bin.rpart`](#binning-based-on-rpart-bin.rpart)
-        -   [Binning for Logistic Model](#binning-for-logistic-model)
-        -   [Binning for Survival Model](#binning-for-survival-model)
-        -   [Replace numerical Varialbes with Bins](#replace-numerical-varialbes-with-bins)
-    -   [Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`](#level-statistics-frequence-rate-woe-and-iv-level.stat)
-    -   [Visualizing Level Statistics: `ggstat`](#visualizing-level-statistics-ggstat)
-        -   [Constant Bar Width](#constant-bar-width)
-        -   [Plot WOE](#plot-woe)
-    -   [Replace Bins with WOE: `replace.woe`](#replace-bins-with-woe-replace.woe)
-    -   [Correlation between Independent Variables: `corrplot.beautify`](#correlation-between-independent-variables-corrplot.beautify)
-    -   [Logistic Model](#logistic-model)
-    -   [Preparing Test Data: `bin.custom & replace.woe`](#preparing-test-data-bin.custom-replace.woe)
-        -   [Bin Test Data: `bin.custom`](#bin-test-data-bin.custom)
-        -   [Replace Binned Test Data with WOE: `replace.woe`](#replace-binned-test-data-with-woe-replace.woe)
-    -   [Model Performance: `perf.auc & perf.decile`](#model-performance-perf.auc-perf.decile)
-        -   [Check Performance Based on AUC: `perf.auc`](#check-performance-based-on-auc-perf.auc)
-        -   [Check Performance Based on Decile Rate: `perf.decile`](#check-performance-based-on-decile-rate-perf.decile)
-    -   [Convert Coefficients to Rate: `coef2rate`](#convert-coefficients-to-rate-coef2rate)
-
-Streamline Rountine Modeling Work in R: streamlineR
-===================================================
+-   [R Setup](#r-setup)
+-   [Data Preparation](#data-preparation)
+-   [Split Data into Training and Test datasets](#split-data-into-training-and-test-datasets)
+-   [Binning Based on rpart: `bin.rpart`](#binning-based-on-rpart-bin.rpart)
+    -   [Binning for Logistic Model](#binning-for-logistic-model)
+    -   [Binning for Survival Model](#binning-for-survival-model)
+    -   [Replace numerical Varialbes with Bins](#replace-numerical-varialbes-with-bins)
+-   [Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`](#level-statistics-frequence-rate-woe-and-iv-level.stat)
+-   [Visualizing Level Statistics: `ggstat`](#visualizing-level-statistics-ggstat)
+    -   [Constant Bar Width](#constant-bar-width)
+    -   [Plot WOE](#plot-woe)
+-   [Replace Bins with WOE: `replace.woe`](#replace-bins-with-woe-replace.woe)
+-   [Correlation between Independent Variables: `corrplot.beautify`](#correlation-between-independent-variables-corrplot.beautify)
+-   [Logistic Model](#logistic-model)
+-   [Preparing Test Data: `bin.custom & replace.woe`](#preparing-test-data-bin.custom-replace.woe)
+    -   [Bin Test Data: `bin.custom`](#bin-test-data-bin.custom)
+    -   [Replace Binned Test Data with WOE: `replace.woe`](#replace-binned-test-data-with-woe-replace.woe)
+-   [Model Performance: `perf.auc & perf.decile`](#model-performance-perf.auc-perf.decile)
+    -   [Check Performance Based on AUC: `perf.auc`](#check-performance-based-on-auc-perf.auc)
+    -   [Check Performance Based on Decile Rate: `perf.decile`](#check-performance-based-on-decile-rate-perf.decile)
+-   [Convert Coefficients to Rate: `coef2rate`](#convert-coefficients-to-rate-coef2rate)
 
 This package is designed to streamline the routine modeling work, especially for scoring. It provides some handy functions to bin numerical variables, replace numerical variables with Weight of Evidence (WOE), ranking varialbes by Information Values (IV), plotting the successful/failure rates, check model performance based on AUC, and so on.This package also provides the useful function to convert the model output (e.g., coefficients) to graph/tables that are easier to understand for non-technical audience.
 
@@ -57,9 +53,8 @@ sapply(c('caret', 'corrplot', 'devtools', 'dplyr','e1071', 'gridExtra', 'knitr',
 
 ``` r
 # install the streamlineR package via github
-# install_github('JianhuaHuang/streamlineR')
-source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR/R/myFun.R')
-# library(streamit)
+install_github('JianhuaHuang/streamlineR')
+library(streamlineR)
 ```
 
 In this example, I analyzed the primary biliary cirrhosis (PBC) dataset from the survival package. The details of this dataset is availalble [here](https://stat.ethz.ch/R-manual/R-devel/library/survival/html/pbc.html), or you can run `?survival::pbc` to find the data description within R. Because the sample size is a little small, I increased the sample size by resampling the data 10000 times.

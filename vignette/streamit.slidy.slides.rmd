@@ -2,9 +2,13 @@
 title: 'Streamline Rountine Modeling Work in R: streamlineR'
 author: "Jianhua Huang"
 date: "July 27, 2016"
-output:
-  slidy_presentation: default
-  beamer_presentation: default
+output: 
+  slidy_presentation:
+    fig_width: 7
+    fig_height: 4
+    keep_md: true
+    duration: 60
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -16,13 +20,14 @@ rm(list = ls())
 
 # Load these pacakges
 sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
-  'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'), 
+  'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
+  'manipulate'), 
   require, character.only = TRUE)
 
 # dir <- 'F:/Projects/Rpackage/streamlineR'
 # source('F:/Projects/Rpackage/streamlineR/R/myFun.R')
 dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR'
-source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR/R/myFun.R')
+# source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR/R/myFun.R')
 opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
 ```
 
@@ -30,7 +35,7 @@ opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
 ## Data Preparation
 ```{r}
 # chooseCRANmirror()  # choose another mirror to download R packages, if blocked
-# install_github('JianhuaHuang/streamlineR')
+install_github('JianhuaHuang/streamlineR')
 library(streamlineR)
 
 dt <- survival::pbc %>%
@@ -61,6 +66,19 @@ rm(dt)
 ```
 
 
+## Binning Based on Regression Coefficients: `bin.knn`
+```{r,eval=FALSE}
+manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.pop),
+  n.group = slider(1, 10, step = 1, initial = 5, label = 'Number of Groups'),
+  min.pop = slider(0.01, .2, step = 0.01, initial = 0.05,
+    label = 'Minimum Population'))
+```
+
+```{r,echo=FALSE}
+bin.knn(formula = status ~ platelet, data = dt.train, n.group = 5, min.pop = 0.05)
+```
+
+
 ## Binning Based on rpart: `bin.rpart`
 ```{r}
 rpart(formula = status ~ age, data = dt.train, 
@@ -84,11 +102,26 @@ surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
   rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))  ## cp = 0.01
 
 surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
-  rcontrol = rpart.control(cp  = .001, minbucket = .05 * nrow(dt.train)))  
+  rcontrol = rpart.control(cp  = .001, minbucket = .05 * nrow(dt.train)))
 
 surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
   rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)), n.group = 3:7)
 ```
+
+
+```{r}
+inputPanel(
+  sliderInput("cp", label = 'cp',
+              min = 0.001, max = .1, value = .01, step = .001)
+)
+
+renderPrint({
+  rs <- bin.rpart(formula = status ~ platelet, data = dt.train,
+    rcontrol = rpart.control(cp  = input$cp, minbucket = 100)) 
+  print(rs$cut.points)
+})
+```
+
 
 **Replace numerical Varialbes with Bins**
 ```{r}
@@ -184,6 +217,7 @@ head(dt.test)
 perf.auc(model = lg.aic, dt.train, dt.test)
 ```
 
+
 **Check Performance Based on Decile Rate**: `perf.decile`
 ```{r}
 pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
@@ -199,5 +233,15 @@ head(pred.stat)
 pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 
 ggstat(pred.stat, y = 'Pred.Rate.1')
+
+inputPanel(
+  sliderInput("gg_n_group", label = "Number of Groups",
+              min = 1, max = 4, value = 2, step = 1)
+)
+
+renderPlot({
+  ggstat(stat.train, n.col = input$gg_n_group)
+})
+
 ```
 

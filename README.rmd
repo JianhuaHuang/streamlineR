@@ -1,11 +1,16 @@
 ---
-title: "Streamline Rountine Modeling Work in R: streamlineR"
 author: "Jianhua Huang"
 date: "July 23, 2016"
 output: 
   md_document:
     toc: true
     variant: markdown_github
+params: 
+    set_title: "Streamline Rountine Modeling Work in R: streamlineR"
+---
+
+---
+title: `r params$set_title`
 ---
 
 ```{r,set.options, include=FALSE}
@@ -15,7 +20,6 @@ knitr::opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
 ```
 
 
-# Streamline Rountine Modeling Work in R: streamlineR
 This package is designed to streamline the routine modeling work, especially for scoring. It provides some handy functions to bin numerical variables, replace numerical variables with Weight of Evidence (WOE), ranking varialbes by Information Values (IV), plotting the successful/failure rates, check model performance based on AUC, and so on.This package also provides the useful function to convert the model output (e.g., coefficients) to graph/tables that are easier to understand for non-technical audience.
 
 The following example illustrates how to use the `streamlineR` package to prepare data, build models, and generate figures. 
@@ -38,9 +42,8 @@ sapply(c('caret', 'corrplot', 'devtools', 'dplyr','e1071', 'gridExtra', 'knitr',
   require, character.only = TRUE)
 
 # install the streamlineR package via github
-# install_github('JianhuaHuang/streamlineR')
-source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR/R/myFun.R')
-# library(streamit)
+install_github('JianhuaHuang/streamlineR')
+library(streamlineR)
 ```
 
 In this example, I analyzed the primary biliary cirrhosis (PBC) dataset from the survival package. The details of this dataset is availalble [here](https://stat.ethz.ch/R-manual/R-devel/library/survival/html/pbc.html), or you can run  `?survival::pbc` to find the data description within R. Because the sample size is a little small, I increased the sample size by resampling the data 10000 times. 
