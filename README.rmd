@@ -1,17 +1,15 @@
 ---
 author: "Jianhua Huang"
 date: "July 23, 2016"
+title: "Streamline Rountine Modeling Work in R: streamlineR"
 output: 
   md_document:
     toc: true
     variant: markdown_github
-params: 
-    set_title: "Streamline Rountine Modeling Work in R: streamlineR"
 ---
 
----
-title: `r params$set_title`
----
+# Streamline Rountine Modeling Work in R: streamlineR
+
 
 ```{r,set.options, include=FALSE}
 # dir <- 'F:/Projects/Rpackage/streamlineR'
@@ -28,7 +26,7 @@ The following example illustrates how to use the `streamlineR` package to prepar
 This analysis relies on other packages. If these packges are not available yet in your computer, you need to install them with the following commands.
 ```{r setup, eval=FALSE}
 # in case the default mirror is blocked in your domain, choose another one
-chooseCRANmirror()  
+# chooseCRANmirror()  
 sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'),
   install.packages)
