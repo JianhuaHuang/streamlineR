@@ -2,11 +2,6 @@
 #   Check Package:             'Ctrl + Shift + E'
 #   Test Package:              'Ctrl + Shift + T'
 
-# sapply(c('ggplot2', 'dplyr', 'reshape2', 'pec', 'rpart', 'survival', 'gridExtra'),
-#   require, character.only = TRUE)
-# sapply(c('ggplot2', 'dplyr', 'reshape2', 'pec', 'rpart', 'survival', 'gridExtra'),
-#   requireNamespace, quietly = TRUE)
-
 ############################# little functions #################################
 ## add.row
 add.row <- function(df, new.row) {
@@ -21,19 +16,19 @@ add.row <- function(df, new.row) {
   #   df with new row added to the end. The classes of each column is preserved
   f <- sapply(df, is.factor)
   df[f] <- lapply(df[f], as.character)
-
+  
   df.class <- lapply(df, class)
   new.row <- as.list(new.row)
   if(length(df.class) != length(new.row)) {
     stop('Length does not match number of columns')
   }
-
+  
   new.row.list <- lapply(1:length(new.row), function(x) {
     new.class <- as(new.row[[x]], df.class[[x]])
   })
-
+  
   df[nrow(df) + 1, ] <- new.row.list
-
+  
   return(df)
 }
 # df <- data.frame(x = c('A', 'B', 'C'), y = 1:3, z = 4:6, stringsAsFactors = F)
@@ -87,29 +82,29 @@ bin.custom <- function(x, cut.p, names = NULL,
   #                'scientific' (e.g., (1, 2]) or 'report' (e.g., 1 < · <= 2)
   # Return:
   #    A vector of binned values
-
+  
   x.num <- as.numeric(x)
   cut.p.num <- as.numeric(cut.p)
-
+  
   # add ends to the cut.p
   cut.p_ends <- c(-Inf, cut.p.num, max(x.num, na.rm = T))
   x.bins <- cut(x.num, cut.p_ends, include.lowest = T)
-
+  
   # change the levels from -Inf to the actual minimum value
   if(is.null(names)) {
-
+    
     name.style = name.style[1]
-
+    
     if(name.style == 'scientific') {
       levels(x.bins) <- gsub(paste0('[-Inf,', cut.p[1], ']'),
         paste0('[', min(x, na.rm = T), ',', cut.p[1], ']'),
         levels(x.bins), fixed = T)
     }
-
+    
     if(name.style == 'report') {
       bin.names <- c(paste('<=', cut.p[1]), rep(NA, length(cut.p) - 1),
         paste('>', cut.p[length(cut.p)]))
-
+      
       if(length(cut.p) > 1) {
         for (i in 2:length(cut.p)) {
           bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
@@ -123,12 +118,12 @@ bin.custom <- function(x, cut.p, names = NULL,
     filter(!is.na(x)) %>%
     group_by(x.bins) %>%
     summarise(unique.x = length(unique(x)), min.x = min(x))
-
+  
   levels(x.bins) <- ifelse(x.bin.unique$unique.x == 1, x.bin.unique$min.x,
     levels(x.bins))
-
+  
   if(!is.null(names)) levels(x.bins) <- names # coerce to change levels
-
+  
   # preserve the levels order
   lvs <- levels(x.bins)
   x.bins <- as.character(x.bins)
@@ -142,163 +137,70 @@ bin.custom <- function(x, cut.p, names = NULL,
 # bin.custom(x = c(1:50, NA, NA, 51:100), cut.p = c(1, 2, 99), name.style = 'report')
 # rs <- bin.custom(dt$Grad_Year_Month, as.yearmon(c('Aug 2012', 'Aug 2013')))
 
-# Optimzed binning
-## This function is updated to bin.rpart, which provides more control
-## Don't delete this function for now, it is used in previous projects!!!!
-bin.optimal <- function(data, x, y = 'PROGRESSION_FLAG',
-  Return = c('cuts', 'bins')) {
-  # this function is used to bin the data based on the optimized cut points
-  # caulcated with the smbinning method
-  # print(x)
-  x.cuts <- smbinning(data, x = x, y= y, p=0.05)
-  if(x.cuts == 'No Bins') return('No Bins')
-
-  x.bins <- cut(data[, x], c(min(data[, x], na.rm = T), x.cuts$cuts,
-    max(data[, x], na.rm = T)), include.lowest = T)
-  lvs <- levels(x.bins)  # preserve the levels order
-  x.bins <- as.character(x.bins)
-  x.bins[is.na(x.bins)] <- 'Missing'
-  x.bins <- factor(x.bins, levels = c(lvs, 'Missing'))
-  x.bins <- droplevels(x.bins)
-
-  cat(c(x, ':', x.cuts$cuts, '\n'))
-
-  rs <- if(Return == 'cuts') x.cuts$cuts else x.bins
-  return(rs)
-}
-
-## survival binning based on the KNN of survival model coefficients
-# it is updated to bin.knn to include logsitic model
-bin.surv.knn <- function(data, Status, Time, x.num) {
-  num.bin.plot <- function(x.n, knn.g, min.pop,
-    Time = 'Conversion_Time_Months', Status = 'Conversion_Status', data) {
-
-    # This function is used to explore the clustering of bins based on KNN method
-    cut.q <- unique(quantile(data[, x.n], seq(0, 1, length.out = 100 / min.pop),
-      na.rm = T))
-    # data$x.n.c <- cut(data[, x.n], c(-Inf, cut.q, Inf))
-    data$x.n.c <- cut(data[, x.n], cut.q, include.lowest = TRUE)
-    data$x.n.c <- droplevels(data$x.n.c)
-    data$x.n.c <- addNA(data$x.n.c, ifany = T)
-
-    # survival model
-    sf <- coxph(as.formula(paste0('Surv(', Time, ', ', Status, ') ~  x.n.c')),
-      data = data)
-
-    # construct the coef and population dataframe
-    x.pop <- data.frame(Variable = x.n, data.frame(table(data$x.n.c)))
-    colnames(x.pop) <- c('Variable', 'Bin', 'Freq')
-
-    coef <- data.frame(Variable = x.n,
-      Bin = gsub('x.n.c', '', names(sf$coefficients)),
-      Coef = sf$coefficients)
-
-    coef.pop <- merge(x.pop, coef, all.x = T)
-    coef.pop$Coef[1] <- 0  # the first value is the reference, its coef is zero
-
-    # knn groups based on the order and coefficients
-    x.knn <- data.frame(Ord = 1:nrow(coef.pop), Coef = coef.pop$Coef)
-
-    coef.pop$KNN_Group <- as.factor(
-      kmeans(scale(x.knn), knn.g, nstart = 20)$cluster)
-
-    p <- ggplot(coef.pop, aes(x = Bin, y = Coef, fill = KNN_Group,
-      color = KNN_Group, width = 3 * Freq / nrow(data))) +
-      geom_bar(stat = 'identity') +
-      labs(x = 'Bins', y = 'Survival Model Coefficients',
-        title = paste(x.n, ':', nrow(coef.pop), 'coefficients clustered into',
-          knn.g, 'groups')) +
-      theme_bw() +
-      scale_fill_discrete(name = 'KNN Group') +
-      scale_color_discrete(name = 'KNN Group') +
-      theme(axis.text.x = element_text(angle=30, hjust=1))
-
-    print(p)
-  }
-
-  manipulate(
-    num.bin.plot(x.n, knn.g, min.pop, data = data,
-      Time = 'Conversion_Time_Months', Status = 'Conversion_Status'),
-    x.n = picker(as.list(x.num), label = 'Numerical Variables'),
-    knn.g = slider(1, 10, step = 1, initial = 5, label = 'Number of groups'),
-    min.pop = slider(1, 20, step = 1, initial = 5,
-      label = 'Minimum Population Size (%)'))
-}
-# knn.surv.bin(data = dt.conv, Time = 'Conversion_Time_Months',
-#   Status = 'Conversion_Status', x.num = col.num.conv)
-
 ## bin.knn
-# this function is based on the bin.surv.knn. It is adjusted to include the
-# logistic model
-bin.knn <- function(data, x.num, y) {
+bin.knn <- function(formula, data, n.group, min.pop) {
   # Visualize the binning for survival/logistic model based on model coefficients
+  # Can be combined with the manipulate function to check the binning of 
+  # coefficients interactively
   # Args:
+  #    formula: the model used for binning (can be glm or coxph)
   #    data: the data frame used for binning
-  #    y: the dependent variable for logistic model (e.g., 'Progression_Flag'),
-  #       or the survival object for survival model (e.g., 'Surv(Time, Status)')
-  #    x.num: the numerical variables to be binned
+  #    n.group: number of binned groups
+  #    min.pop: the minimum ratio of population in each group (can be 
+  #             a value between 0 to 1)
   # Return:
-  #    Shows the interactive plot with KNN binning
-
-  num.bin.plot <- function(data, x.n, y, knn.g, min.pop) {
-
-    # This function is used to explore the clustering of bins based on KNN method
-    cut.q <- unique(quantile(data[, x.n], seq(0, 1, length.out = 100 / min.pop),
-      na.rm = T))
-    data$x.n.c <- cut(data[, x.n], cut.q, include.lowest = TRUE)
-    data$x.n.c <- droplevels(data$x.n.c)
-    data$x.n.c <- addNA(data$x.n.c, ifany = T)
-
-    # If y is a survival object, coxph is used to estimate the coefficients
-    # Otherwise (y is a binary vector), the logistic model is used
-    if(grepl('^Surv', y)) {
-      mod <- coxph(as.formula(paste0(y, ' ~  x.n.c')), data = data)
-    } else {
-      mod <- glm(as.formula(paste0(y, ' ~  x.n.c')), data = data,
-        family=binomial(link='logit'))
-    }
-
-    # construct the coef and population dataframe
-    x.pop <- data.frame(Variable = x.n, data.frame(table(data$x.n.c)))
-    colnames(x.pop) <- c('Variable', 'Bin', 'Freq')
-
-    coef <- data.frame(Variable = x.n,
-      Bin = gsub('x.n.c', '', names(mod$coefficients)),
-      Coef = mod$coefficients)
-
-    coef.pop <- merge(x.pop, coef, all.x = T)
-    coef.pop$Coef[1] <- 0  # the first value is the reference, its coef is zero
-
-    # knn groups based on the order and coefficients
-    x.knn <- data.frame(Ord = 1:nrow(coef.pop), Coef = coef.pop$Coef)
-
-    coef.pop$KNN_Group <- as.factor(
-      kmeans(scale(x.knn), knn.g, nstart = 20)$cluster)
-
-    p <- ggplot(coef.pop, aes(x = Bin, y = Coef, fill = KNN_Group,
-      color = KNN_Group, width = 3 * Freq / nrow(data))) +
-      geom_bar(stat = 'identity') +
-      labs(x = 'Bins', y = 'Model Coefficients',
-        title = paste(x.n, ':', nrow(coef.pop), 'coefficients clustered into',
-          knn.g, 'groups')) +
-      theme_bw() +
-      scale_fill_discrete(name = 'KNN Group') +
-      scale_color_discrete(name = 'KNN Group') +
-      theme(axis.text.x = element_text(angle=30, hjust=1))
-
-    print(p)
+  #    Shows a ggplot with the regression coefficients and the binned groups
+  
+  x <- as.character(formula[3])
+  y <- as.character(formula[2])
+  
+  # This function is used to explore the clustering of bins based on KNN method
+  cut.q <- unique(quantile(data[, x], seq(0, 1, length.out = 1 / min.pop),
+    na.rm = T))
+  data[, x] <- cut(data[, x], cut.q, include.lowest = TRUE)
+  data[, x] <- droplevels(data[, x])
+  data[, x] <- addNA(data[, x], ifany = T)
+  
+  # If y is a survival object, coxph is used to estimate the coefficients
+  # Otherwise (y is a binary vector), the logistic model is used
+  if(grepl('^Surv', y)) {
+    mod <- coxph(formula, data = data)
+  } else {
+    mod <- glm(formula, data = data, family=binomial(link='logit'))
   }
-
-  manipulate(
-    num.bin.plot(x.n, knn.g, min.pop, data = data, y = y),
-    x.n = picker(as.list(x.num), label = 'Numerical Variables'),
-    knn.g = slider(1, 10, step = 1, initial = 5, label = 'Number of groups'),
-    min.pop = slider(1, 20, step = 1, initial = 5,
-      label = 'Minimum Population Size (%)'))
+  
+  # construct the coef and population dataframe
+  x.pop <- data.frame(Variable = x, data.frame(table(data[, x])))
+  colnames(x.pop) <- c('Variable', 'Bin', 'Freq')
+  
+  coef <- data.frame(Variable = x,
+    Bin = gsub(x, '', names(mod$coefficients)),
+    Coef = mod$coefficients)
+  
+  coef.pop <- merge(x.pop, coef, all.x = T)
+  coef.pop$Coef[1] <- 0  # the first value is the reference, its coef is zero
+  
+  # knn groups based on the order and coefficients
+  x.knn <- data.frame(Ord = 1:nrow(coef.pop), Coef = coef.pop$Coef)
+  
+  coef.pop$KNN_Group <- as.factor(
+    kmeans(scale(x.knn), n.group, nstart = 20)$cluster)
+  
+  ggplot(coef.pop, aes(x = Bin, y = Coef, fill = KNN_Group,
+    color = KNN_Group, width = 3 * Freq / nrow(data))) +
+    geom_bar(stat = 'identity') +
+    labs(x = 'Bins', y = 'Model Coefficients',
+      title = paste(x, ':', nrow(coef.pop), 'coefficients clustered into',
+        n.group, 'groups')) +
+    theme_bw() +
+    scale_fill_discrete(name = 'KNN Group') +
+    scale_color_discrete(name = 'KNN Group') +
+    theme(axis.text.x = element_text(angle=30, hjust=1))
 }
-# bin.knn(data = dt, y = 'Progression', x.num = c('GPA', 'Completed_Courses'))
-# bin.knn(data = dt, y = 'Surv(Conversion_Time, Conversion_Status.05.2016)',
-#   x.num = c('GPA', 'Completed_Courses'))
+# manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.pop),
+#   n.group = slider(1, 10, step = 1, initial = 5, label = 'Number of groups'),
+#   min.pop = slider(0.01, 1, step = 0.01, initial = 0.05,
+#     label = 'Minimum Population Size (%)'))
 
 ## rpart.bin
 bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL, ...) {
@@ -308,27 +210,27 @@ bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL,
   #    data: the dataset used for rpart
   #    n.group: the acceptable number of groups (NA group not counted for)
   #    rcontrol: the control used for rpart
-
+  
   # The NA values are removed by the rpart function automatically
   row.names(data) <- 1:nrow(data)
-
+  
   vars <- all.vars(formula)
   x.num <- vars[length(vars)]
-
+  
   # if the minbucket is the default value 7, then update it to 1% of the data
   # if(rcontrol$minbucket == 7) {
   #   rcontrol$minbucket <- .01 * nrow(data)
   # }
-
+  
   rp.tree <- rpart(formula, data, control = rcontrol, ...)
   # rp.tree <- rpart(formula, data, control = rcontrol)
-
+  
   ## if n.group is NULL, and no group is found, return 'No Bin'
   if(is.null(n.group) & length(unique(rp.tree$where)) == 1) {
     cat(c(x.num, ': No Bin \n'))
     return('No Bin')
   }
-
+  
   ## if n.group is not NULL, change cp to find the possible bins within n.group
   while((!is.null(n.group)) & (!length(unique(rp.tree$where)) %in% n.group)) {
     multipler <- ifelse(length(unique(rp.tree$where)) > median(n.group), 1.1, .9)
@@ -336,44 +238,44 @@ bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL,
     rp.tree <- rpart(formula, data, control = rcontrol, ...)
     # rp.tree <- rpart(formula, data, control = rcontrol)
   }
-
+  
   tree.where <- data.frame(Where = rp.tree$where)
-
+  
   tree.value <- data.frame(Value = data[, x.num], Where = 'Missing',
     stringsAsFactors = F)
   tree.value[row.names(tree.where), 'Where'] <- tree.where$Where
-
+  
   tree.cut <- group_by(tree.value, Where) %>%
     summarise(Cut_Start = min(Value), Cut_End = max(Value)) %>%
     arrange(Cut_End)
-
+  
   if(is.na(tree.cut$Cut_End[nrow(tree.cut)])) {
     cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 2)]
   } else {
     cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 1)]
   }
-
+  
   cat(c(x.num, ':', cut.p, '\n'))
-
+  
   bin.names <- c(paste('<=', cut.p[1]), rep(NA, length(cut.p) - 1),
     paste('>', cut.p[length(cut.p)]))
-
+  
   if(length(cut.p) > 1) {
     for (i in 2:length(cut.p)) {
       bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
     }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
-
+  
   # check whether the Cut_Start and Cut_End are the same
   # if the same, the <, =, or > signs is not needed
   bin.names <- ifelse(tree.cut$Cut_Start[1:length(bin.names)] ==
       tree.cut$Cut_End[1:length(bin.names)], tree.cut$Cut_End, bin.names)
-
+  
   tree.cut$Bin <- 'Missing'
   tree.cut$Bin[1:length(bin.names)] <- bin.names
-
+  
   x.bins <- factor(tree.cut$Bin[match(tree.value$Where, tree.cut$Where)],
     levels = tree.cut$Bin)
-
+  
   return(list(cut.points = cut.p, bins = x.bins))
 }
 # dt <- read.csv('C:/Projects/AlumniConvProg/data/Data_Associate.csv')
@@ -392,19 +294,19 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
   #    flag.0: the value representing 0 in y
   #    flag.1: the value representing 1 in y
   # Return: a data.frame inclduing frequency, rates, WOE, and IV for each x level
-
+  
   if(is.null(x)) x <- setdiff(colnames(data), y)
-
+  
   rs.x <- lapply(x, function(xx) {
     # check whether Y is binary value
     if(length(unique(data[, y])) != 2) stop('Y is not binary value')
-
+    
     dt <- data[, c(xx, y)]
-
+    
     if(is.factor(dt[, y])) dt[, y] <- as.character(dt[, y])
-
+    
     dt[, y] <- ifelse(dt[, y] == flag.0, 0, 1)
-
+    
     dt.iv <- table(dt) %>%
       as.data.frame.matrix %>%
       transmute(Variable = xx,
@@ -429,7 +331,7 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
         WOE = log(Distr.1 / Distr.0),
         IV = sum((Distr.1 - Distr.0) * WOE))
   })
-
+  
   rs <- do.call(rbind, rs.x) %>%
     arrange(desc(IV)) %>%
     mutate(Variable.IV = paste0(Variable, ' (IV: ', round(IV, 3), ')'),
@@ -459,35 +361,35 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   #                     not labelled.
   #    n.col: number of panel column
   # Return: ggplot
-
+  
   data$var = data[, var]
   data$x = data[, x]
   data$y = data[, y]
-
+  
   if(is.null(y.label)) {
     data$y.label = ''
   } else {
     data$y.label = data[, y.label]
   }
-
+  
   if(is.null(bar.width)) {
     data$bar.width = 0
   } else {
     data$bar.width = data[, bar.width]
   }
-
+  
   if(is.null(bar.width.label)) {
     data$bar.width.label = ''
   } else {
     data$bar.width.label = data[, bar.width.label]
   }
-
+  
   if(is.null(n.col)) n.col <- ceiling(sqrt(length(unique(data$var))))
-
+  
   y.range <- max(data$y) - ifelse(y.min.0 == TRUE, 0, min(data$y))
   y.min <- ifelse(y.min.0 == TRUE, 0, min(data$y) - y.range * .15)
   y.max <- (max(data$y)) + y.range * .1
-
+  
   ggplot(data, aes(x = x, y = y)) +
     facet_wrap(~ var, scale = 'free', ncol = n.col) +
     geom_bar(aes(width = bar.width + .1), stat = 'identity',
@@ -520,16 +422,16 @@ replace.woe <- function(data, level.stat.output, replace = FALSE) {
   #    replace: FALSE/TRUE. If FALSE, the woe values will be added to the end.
   #             if TRUE, the original levels will be replaced by woe values
   # Return: a data.frame with woe
-
+  
   dt.rp <- data[, intersect(colnames(data), level.stat.output$Variable)]
   dt.rp.woe <- lapply(colnames(dt.rp), function(x) {
     woe.x <- level.stat.output[level.stat.output$Variable == x, ]
     group.match <- match(dt.rp[, x], woe.x$Group)
     woe.x$WOE[group.match]
   })
-
+  
   dt.rp.woe <- do.call(cbind, dt.rp.woe)
-
+  
   if(replace == FALSE) {
     colnames(dt.rp.woe) <- paste0(colnames(dt.rp), '_woe')
     return(data.frame(data, dt.rp.woe))
@@ -537,21 +439,6 @@ replace.woe <- function(data, level.stat.output, replace = FALSE) {
     data[, colnames(dt.rp)] <- dt.rp.woe
     return(data)
   }
-}
-
-## replace the scientific binning names with more understandable style
-replace.bin.name <- function(x) {
-  # replace [a,b] as a≤x≤b, and replace (a, b] as a<x≤b
-  # Arg: x is a single string used as input
-  # Return: a single string with the replacement
-  if (grepl('\\(.*\\]', x)) {
-    bin.name <- gsub('\\(|\\]', '', x) %>% gsub(',', ' < · <= ', .)
-  } else if (grepl('\\[.*\\]', x)) {
-    bin.name <- gsub('\\[|\\]', '', x) %>% gsub(',', ' <= · <= ', .)
-  } else {
-    bin.name <- x
-  }
-  return(bin.name)
 }
 
 ## KM curve
@@ -562,9 +449,9 @@ km.curve <- function(data, time, status, x, plot = TRUE) {
     df.x <- data.frame(time = sf.x$time, surv = sf.x$surv, variable = xx,
       group = rep(gsub(paste0(xx, '='), '', names(sf.x$strata)), sf.x$strata))
   })
-
+  
   dt.km.obo <- do.call(rbind, dt.km.obo)
-
+  
   out <- by(data = dt.km.obo, INDICES = dt.km.obo$variable, FUN = function(m) {
     m <- droplevels(m)
     m <- ggplot(m, aes(x = time, y = surv, color = group)) +
@@ -574,13 +461,15 @@ km.curve <- function(data, time, status, x, plot = TRUE) {
       facet_wrap(~variable, nrow = 4, scales = 'free') +
       theme_simple(plot.margin=unit(c(.5, 0, .5, .5), "cm"))
   })
-
+  
   if(plot == TRUE) do.call(grid.arrange, out)
   return(dt.km.obo)
 }
 # sf <- km.curve(data = dt.conv, time = 'Conversion_Time_Months',
 #   status = 'Conversion_Status', x = col.x[1:6], plot = TRUE)
 
+
+## check model performance: perf.auc & perf.decile
 perf.auc <- function(model, train, test) {
   # check the coxph or logistic (glm) model performance based on AUC
   # For coxph model, the time-dependent AUC and the iAUC (integrated AUC)
@@ -590,35 +479,35 @@ perf.auc <- function(model, train, test) {
   #    train: the training dataset
   #    test: the test dataset
   # Return: A plot of time-dependet AUC (for coxph), or ROC (for logistic)
-
+  
   mod.class <- class(model)[1]  # glm model belongs to two classes, use the 1st
   if(!mod.class %in% c('coxph', 'glm')) {
     stop('the model class is not "coxph" or "glm"')
   }
-
+  
   mod.train <- update(model, data = train)
-
+  
   pred.train <- predict(mod.train,
     type = ifelse(mod.class == 'coxph', 'lp', 'response'))
-
+  
   pred.test <- predict(mod.train, newdata = test,
     type = ifelse(mod.class == 'coxph', 'lp', 'response'))
-
+  
   if(mod.class == 'coxph') {
     # use the time-dependent AUC for coxph model
     time <- all.vars(model$formula)[1]
     status <- all.vars(model$formula)[2]
-
+    
     auc.train <- risksetAUC(Stime = train[, time], status = train[, status],
       marker = pred.train, tmax = max(train[, time]), plot = FALSE)
-
+    
     auc.test <- risksetAUC(Stime = test[, time], status = test[, status],
       marker = pred.test, tmax = max(test[, time]), plot = FALSE)
-
+    
     auc <- rbind(data.frame(auc.train, Data = 'Train'),
       data.frame(auc.test, Data = 'Test'))
     auc$Data <- factor(auc$Data, levels = unique(auc$Data))
-
+    
     p <- ggplot(auc, aes(x = utimes, y = AUC, color = Data)) +
       geom_line(size = 1.5) +
       scale_size_continuous(guide = F) +
@@ -629,31 +518,31 @@ perf.auc <- function(model, train, test) {
       labs(x = 'Survival Time', y = 'AUC') +
       scale_y_continuous(limits = c(.5, 1))
   }
-
+  
   if(mod.class == 'glm') {
     col.y <- all.vars(mod.train$formula)[1]
-
+    
     roc.train <- roc(actual.train ~ pred.train,
       data = data.frame(actual.train = train[, col.y], pred.train))
     roc.train$auc
-
+    
     roc.test <- roc(actual.test ~ pred.test,
       data = data.frame(actual.test = test[, col.y], pred.test))
     roc.test$auc
-
+    
     ## ROC and AUC compare
     roc <- data.frame(
-        FP = 1-roc.train$specificities,
-        TP = roc.train$sensitivities,
-        AUC = as.numeric(roc.train$auc),
-        Data = 'Train') %>%
+      FP = 1-roc.train$specificities,
+      TP = roc.train$sensitivities,
+      AUC = as.numeric(roc.train$auc),
+      Data = 'Train') %>%
       rbind(data.frame(
         FP = 1-roc.test$specificities,
         TP = roc.test$sensitivities,
         AUC = as.numeric(roc.test$auc),
         Data = 'Test')) %>%
       mutate(Data = factor(Data, levels = unique(Data)))
-
+    
     p <- ggplot(roc, aes(x = FP, y = TP, color = Data)) +
       geom_line() +
       scale_color_discrete(name = NULL, labels = c(
@@ -663,7 +552,7 @@ perf.auc <- function(model, train, test) {
       theme_ws()
     theme_simple(legend.position = c(.2, .85))
   }
-
+  
   print(p)
 }
 # perf.auc(model = cox.conv.aic, train = dt.conv.tr, test = dt.conv.test)
@@ -683,10 +572,10 @@ perf.decile <- function(actual, pred, plot = TRUE, add.legend = TRUE) {
     group_by(Decile) %>%
     summarise(Actual.rate = mean(Actual)* 100, Predict.rate = mean(Predict) * 100,
       Freq.1 = sum(Actual), Freq.0 = n() - Freq.1,  Freq.group = n())
-
+  
   min.xy <- min(rate[, c('Predict.rate', 'Actual.rate')])
   max.xy <- max(rate[, c('Predict.rate', 'Actual.rate')])
-
+  
   p <- ggplot(rate, aes(x = Actual.rate, y = Predict.rate)) +
     geom_point(aes(color = as.factor(Decile)), size = 4, show.legend = add.legend) +
     geom_abline(slope = 1, linetype = 2) +
@@ -697,28 +586,28 @@ perf.decile <- function(actual, pred, plot = TRUE, add.legend = TRUE) {
     labs(x = 'Actual Rate (%)', y = 'Predicted Rate (%)') +
     guides(color = guide_legend(reverse = T, override.aes = list(size = 5))) +
     theme_bw()
-
+  
   if(plot == TRUE) print(p)
   return(rate)
 }
 # perf.decile(actual = dt$Progression, pred = mod$fitted.values)
 
-## calculate the survival probability at each step for each record one by one
+## calculate the survival probability at each time for each record one by one
 survexp.obo <- function(data, ratetable, ...) {
   # calculate the survival table for each record one by one
   # Args:
   #    the same as the survexp model, except that the formula is not required
   # Return:
   #    suvival function at each time step, for each record
-
+  
   id = split(1:nrow(data), cut(1:nrow(data), ceiling(nrow(data) / 5000)))
-
+  
   pred.obo <- lapply(id, function(x) {
     pred <- survexp(~ ID, ratetable = ratetable,
       data = data.frame(data[x, ], ID = x), ...)
     t(pred$surv)
   })
-
+  
   pred.all <- do.call(rbind, pred.obo)
 }
 # rs <- survexp.obo(data = dt.conv.test, ratetable = cox.conv.train)
@@ -727,9 +616,9 @@ survexp.obo <- function(data, ratetable, ...) {
 coef2rate <- function(data, model, level.stat.output, force.change = TRUE,
   time = NULL) {
   xs <- labels(model$terms)
-
+  
   pred.x.list <- lapply(xs, function(x) {
-
+    
     if(force.change == TRUE) {
       groups = unique(data[, x])
       pred <- sapply(groups, function(y) {
@@ -747,14 +636,14 @@ coef2rate <- function(data, model, level.stat.output, force.change = TRUE,
       })
       pred.x <- data.frame(Variable = x, Group = groups, Pred.Rate.1 = pred)
     }
-
+    
     if(force.change == FALSE) {
       if(class(model)[1] == 'coxph') {
         if(is.null(time)) stop('Prediction time is needed for coxph model')
-
+        
         pred <- survexp(formula = as.formula(paste('~', x)), data = data,
           ratetable = model, times = time)
-
+        
         pred.x <- data.frame(Variable = x,
           Group = gsub(paste0(x, '='), '', names(pred$surv)),
           Pred.Rate.1 = 1 - pred$surv)
@@ -773,16 +662,16 @@ coef2rate <- function(data, model, level.stat.output, force.change = TRUE,
     }
     return(pred.x)
   })
-
+  
   pred.xs <- do.call(rbind, pred.x.list)
   if(all(pred.xs$Group %in% level.stat.output$WOE)) {
     pred.xs <- rename(pred.xs, WOE = Group)
   }
-
+  
   # in case the _woe columns are used for model, remove the _woe to match
   # with the original variable names
   pred.xs$Variable <- gsub('_woe', '', pred.xs$Variable)
-
+  
   pred.stat <- left_join(level.stat.output, pred.xs) %>%
     filter(!is.na(Pred.Rate.1)) %>%
     mutate(Variable = factor(Variable, levels = unique(Variable)),
@@ -791,7 +680,7 @@ coef2rate <- function(data, model, level.stat.output, force.change = TRUE,
       Group = factor(Group,
         levels = c(setdiff(unique(Group), 'Missing'), 'Missing'))) %>%
     data.frame
-
+  
   return(pred.stat)
 }
 # conv.lvs <- level.stat(data = dt.conv, x = col.x, y = 'Conversion_Status_1yr')
@@ -848,7 +737,7 @@ display.col <- function() {
     melt
   colnames(d) <- c('y', 'x', 'c')
   d$y = max(d$y) - d$y
-
+  
   ggplot(data = d) +
     scale_x_continuous(name = '', breaks = NULL, expand = c(0, 0)) +
     scale_y_continuous(name = '', breaks = NULL, expand = c(0, 0)) +
