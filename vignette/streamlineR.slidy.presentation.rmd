@@ -5,36 +5,39 @@ date: "July 27, 2016"
 output: 
   slidy_presentation:
     fig_width: 7
-    fig_height: 4
+    fig_height: 5
     duration: 60
+    incremental: true
 runtime: shiny
 ---
 
-```{r setup, include=FALSE}
+```{r knitr.setup, include=FALSE}
 rm(list = ls())
-# If you don't have these packages, install them. 
-# once the packages are installed, you don'Bt need to run the code again
-# sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
-#   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS'), install.packages)
+# dir <- 'F:/Projects/Rpackage/streamlineR'
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
 
-# Load these pacakges
-sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
+
+## Data Preparation 
+<ul class = "incremental">
+```{r, eval=FALSE}
+# If the default mirror is blocked, choose another mirror to install R packages, 
+# chooseCRANmirror()
+sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
+  'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
+  'manipulate'), 
+  install.packages)
+```
+
+
+```{r}
+# Load pacakges
+sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
   'manipulate'), 
   require, character.only = TRUE)
 
-# dir <- 'F:/Projects/Rpackage/streamlineR'
-# source('F:/Projects/Rpackage/streamlineR/R/myFun.R')
-dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR'
-# source('C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR/R/myFun.R')
-opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
-```
-
-
-## Data Preparation
-```{r}
-# chooseCRANmirror()  # choose another mirror to download R packages, if blocked
-install_github('JianhuaHuang/streamlineR')
+devtools::install_github('JianhuaHuang/streamlineR')
 library(streamlineR)
 
 dt <- survival::pbc %>%
@@ -42,28 +45,30 @@ dt <- survival::pbc %>%
     time, status = as.numeric(status %in% c(1, 2))) %>%
   filter(!is.na(stage))
 
-set.seed(1111)
+set.seed(1111)  # reproducible
 dt <- dt[sample(nrow(dt), 10000, replace = T), ]
+row.names(dt) <- NULL
 dim(dt)
 str(dt)
 head(dt)
 ```
-
+</ul>
 
 ## Split Data into Training and Test datasets
 ```{r}
-# set.seed(123456)
 set.seed(1111)
 ind.train <- createDataPartition(dt$status, p = .7, list = FALSE)
 dt.train <- dt[ind.train, ]
 dt.test <- dt[-ind.train, ]
-row.names(dt.train) <- 1:nrow(dt.train)
-row.names(dt.test) <- 1:nrow(dt.test)
+row.names(dt.train) <- NULL
+row.names(dt.test) <- NULL
 dim(dt.train)
 dim(dt.test)
-rm(dt)
-```
 
+# preserve the original values
+dt.train.bk <- dt.train
+dt.test.bk <- dt.test
+```
 
 ## Binning Based on Regression Coefficients: `bin.knn`
 ```{r,eval=FALSE}
@@ -74,51 +79,63 @@ manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.pop),
 ```
 
 ```{r,echo=FALSE}
-bin.knn(formula = status ~ platelet, data = dt.train, n.group = 5, min.pop = 0.05)
+inputPanel(
+  sliderInput("n_group", label = 'Number of Groups',
+              min = 1, max = 9, value = 5, step = 1),
+  sliderInput("min_pop", label = 'Minimum Population',
+              min = 0.01, max = .2, value = .05, step = .01)
+)
+
+renderPlot({
+  bin.knn(formula = status ~ platelet, data = dt.train.bk, 
+    n.group = input$n_group, min.pop = input$min_pop)
+})
 ```
 
 
 ## Binning Based on rpart: `bin.rpart`
+<ul class = "incremental">
 ```{r}
 rpart(formula = status ~ age, data = dt.train, 
-  control = rpart.control(minbucket = .05 * nrow(dt.train)))
+  control = rpart.control(minbucket = .01 * nrow(dt.train)))
 ```
 
 **Binning for Logistic Model**
 ```{r}
 lg.bin.age <- bin.rpart(formula = status ~ age, data = dt.train, 
-  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))
+  rcontrol = rpart.control(minbucket = .01 * nrow(dt.train)))
 
 str(lg.bin.age)
 
 lg.bin.platelet <- bin.rpart(formula = status ~ platelet, data = dt.train, 
-  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))
+  rcontrol = rpart.control(minbucket = .01 * nrow(dt.train)))
 ```
+
 
 **Binning for Survival Model**
 ```{r}
 surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
   rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))  ## cp = 0.01
+```
 
-surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
-  rcontrol = rpart.control(cp  = .001, minbucket = .05 * nrow(dt.train)))
 
-surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
-  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)), n.group = 3:7)
+```{r,echo=FALSE,fig.width=6}
+inputPanel(
+  sliderInput("cp", label = 'cp',
+              min = 0.001, max = .03, value = .01, step = .001)
+)
+
+renderPrint({
+  rs <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train.bk,
+    rcontrol = rpart.control(cp  = input$cp, minbucket = .05 * nrow(dt.train.bk))) 
+  # print(rs$cut.points)
+})
 ```
 
 
 ```{r}
-inputPanel(
-  sliderInput("cp", label = 'cp',
-              min = 0.001, max = .1, value = .01, step = .001)
-)
-
-renderPrint({
-  rs <- bin.rpart(formula = status ~ platelet, data = dt.train,
-    rcontrol = rpart.control(cp  = input$cp, minbucket = 100)) 
-  print(rs$cut.points)
-})
+surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)), n.group = 3:7)
 ```
 
 
@@ -131,17 +148,20 @@ dt.train$age <- lg.bin.age$bins
 dt.train$platelet <- lg.bin.platelet$bins
 head(dt.train)
 ```
+</ul>
 
 
 ## Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`
+<ul class = "incremental">
 ```{r}
 col.x <- c('age', 'gender', 'platelet', 'stage')
 stat.train <- level.stat(dt.train, x = col.x, y = 'status')
 head(stat.train)
 ```
-
+</ul>
 
 ## Visualizing Level Statistics: `ggstat`
+<ul class = "incremental">
 ```{r}
 ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Rate.group',
@@ -163,37 +183,44 @@ stat.train$WOE.round <- round(stat.train$WOE, 2)
 ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL, 
   bar.width.label = NULL, n.col = 4)
 ```
-
+</ul>
 
 ## Replace Bins with WOE: `replace.woe`
+<ul class = "incremental">
 ```{r}
-replace.woe(data = dt.train, level.stat.output = stat.train) %>% head
+replace.woe(data = dt.train, level.stat.output = stat.train, replace = FALSE) %>%
+  head
 
-dt.train.org <- dt.train
 dt.train <- replace.woe(data = dt.train, level.stat.output = stat.train, 
   replace = TRUE)
 head(dt.train)
 ```
-
+</ul>
 
 ## Correlation between Independent Variables: `corrplot.beautify`
+<ul class = "incremental">
 ```{r}
 cor.mat <- cor(dt.train[, col.x])
+corrplot(cor.mat)
 corrplot.beautify(cor.mat)
 ```
-
+</ul>
 
 ## Logistic Model
+<ul class = "incremental">
 ```{r}
 lg <- glm(status ~ ., dt.train, family=binomial(link='logit'))
 summary(lg)
 
 lg.aic <- stepAIC(lg, k =  qchisq(0.05, 1, lower.tail=F))   # p to enter: 0.05
 summary(lg.aic)
-```
 
+data.frame(vif(lg.aic))
+```
+</ul>
 
 ## Preparing Test Data: `bin.custom & replace.woe`
+<ul class = "incremental">
 **Bin Test Data**: `bin.custom`
 ```{r}
 head(dt.test)
@@ -208,9 +235,10 @@ head(dt.test)
 dt.test <- replace.woe(dt.test, level.stat.output = stat.train, replace = TRUE)
 head(dt.test)
 ```
-
+</ul>
 
 ## Model Performance: `perf.auc & perf.decile`
+<ul class = "incremental">
 **Check Performance Based on AUC**: `perf.auc`
 ```{r}
 perf.auc(model = lg.aic, dt.train, dt.test)
@@ -222,9 +250,11 @@ perf.auc(model = lg.aic, dt.train, dt.test)
 pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
 perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 ```
+</ul>
 
 
 ## Convert Coefficients to Rate: `coef2rate`
+<ul class = "incremental">
 ```{r}
 pred.stat <- coef2rate(data = dt.test, model = lg.aic, 
   level.stat.output = stat.train, force.change = TRUE)
@@ -232,15 +262,15 @@ head(pred.stat)
 pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 
 ggstat(pred.stat, y = 'Pred.Rate.1')
-
-inputPanel(
-  sliderInput("gg_n_group", label = "Number of Groups",
-              min = 1, max = 4, value = 2, step = 1)
-)
-
-renderPlot({
-  ggstat(stat.train, n.col = input$gg_n_group)
-})
-
 ```
+</ul>
+
+## Reference:
+* streamlineR package information: https://github.com/JianhuaHuang/streamlineR 
+* to submit bug: http://github.com/JianhuaHuang/streamlineR/issues
+<!-- link to website -->
+<!-- package information -->
+<!-- decision tree algorithm: rpart https://github.com/JianhuaHuang/streamlineR#data-preparation -->
+<!-- precision recall -->
+
 
