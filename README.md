@@ -35,7 +35,7 @@ This analysis relies on other packages. If these packges are not available yet i
 
 ``` r
 # in case the default mirror is blocked in your domain, choose another one
-chooseCRANmirror()  
+# chooseCRANmirror()  
 sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'),
   install.packages)
@@ -560,3 +560,6 @@ ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-23-1.png)
+
+<iframe width="560" height="315" src="http://www.youtube.com/embed/9bZkp7q19f0?rel=0" frameborder="0" allowfullscreen>
+</iframe>
