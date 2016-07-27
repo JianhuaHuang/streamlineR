@@ -138,7 +138,7 @@ bin.custom <- function(x, cut.p, names = NULL,
 # rs <- bin.custom(dt$Grad_Year_Month, as.yearmon(c('Aug 2012', 'Aug 2013')))
 
 ## bin.knn
-bin.knn <- function(formula, data, n.group, min.pop) {
+bin.knn <- function(formula, data, n.group, min.bucket) {
   # Visualize the binning for survival/logistic model based on model coefficients
   # Can be combined with the manipulate function to check the binning of 
   # coefficients interactively
@@ -146,7 +146,7 @@ bin.knn <- function(formula, data, n.group, min.pop) {
   #    formula: the model used for binning (can be glm or coxph)
   #    data: the data frame used for binning
   #    n.group: number of binned groups
-  #    min.pop: the minimum ratio of population in each group (can be 
+  #    min.bucket: the minimum ratio of population in each group (can be 
   #             a value between 0 to 1)
   # Return:
   #    Shows a ggplot with the regression coefficients and the binned groups
@@ -155,7 +155,7 @@ bin.knn <- function(formula, data, n.group, min.pop) {
   y <- as.character(formula[2])
   
   # This function is used to explore the clustering of bins based on KNN method
-  cut.q <- unique(quantile(data[, x], seq(0, 1, length.out = 1 / min.pop),
+  cut.q <- unique(quantile(data[, x], seq(0, 1, length.out = 1 / min.bucket),
     na.rm = T))
   data[, x] <- cut(data[, x], cut.q, include.lowest = TRUE)
   data[, x] <- droplevels(data[, x])
@@ -197,9 +197,9 @@ bin.knn <- function(formula, data, n.group, min.pop) {
     scale_color_discrete(name = 'KNN Group') +
     theme(axis.text.x = element_text(angle=30, hjust=1))
 }
-# manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.pop),
+# manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
 #   n.group = slider(1, 10, step = 1, initial = 5, label = 'Number of groups'),
-#   min.pop = slider(0.01, 1, step = 0.01, initial = 0.05,
+#   min.bucket = slider(0.01, 1, step = 0.01, initial = 0.05,
 #     label = 'Minimum Population Size (%)'))
 
 ## rpart.bin
