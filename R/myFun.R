@@ -329,6 +329,7 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
         Distr.0 = Freq.0 / sum(Freq.0),
         Distr.1 = Freq.1 / sum(Freq.1),
         WOE = log(Distr.1 / Distr.0),
+        WOE.round = round(WOE, 2), 
         IV = sum((Distr.1 - Distr.0) * WOE))
   })
   
