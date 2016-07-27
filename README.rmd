@@ -176,12 +176,14 @@ After replacing the numerical variables with bins, the numerical varialbes are c
 
 
 ## Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`
-For all of the categorical varialbes, it is useful to calculate some statistics of different levels. The `level.stat` function is designed for this purpose. 
+For all of the categorical varialbes, it is useful to calculate some statistics (e.g., population frequence, good/bad rates, and weight of evidence) for different levels and variables. The `level.stat` function is designed for this purpose. In order to use the `level.stat` function, the dependent variable (y) should be binary, and you should specify what is flagged as 0/1 in the `level.stat` output. 
 ```{r}
 col.x <- c('age', 'gender', 'platelet', 'stage')
-stat.train <- level.stat(dt.train, x = col.x, y = 'status')
+stat.train <- level.stat(dt.train, x = col.x, y = 'status', flag.0 = 0, flag.1 = 1)
 head(stat.train)
 ```
+
+
 
 
 ## Visualize Level Statistics: `ggstat`

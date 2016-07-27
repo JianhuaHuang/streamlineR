@@ -896,7 +896,7 @@ bin.knn(status ~ platelet, data = dt.train, n.group = 5, min.bucket = 0.05)
 manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
   n.group = slider(1, 10, step = 1, initial = 5, label = 'Number of Groups'),
   min.bucket = slider(0.01, .2, step = 0.01, initial = 0.05,
-    label = 'Minimum Population'))
+    label = 'Minimum Bucket'))
 ```
 
 
@@ -904,7 +904,7 @@ manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
 inputPanel(
   sliderInput("n_group", label = 'Number of Groups',
               min = 1, max = 9, value = 5, step = 1, ticks = FALSE),
-  sliderInput("min_pop", label = 'Minimum Population',
+  sliderInput("min_pop", label = 'Minimum Bucket',
               min = 0.01, max = .2, value = .05, step = .01, ticks = FALSE)
 )
 
@@ -941,20 +941,20 @@ lg.bin.platelet <- bin.rpart(formula = status ~ platelet, data = dt.train,
 **Binning for Survival Model**
 ```{r}
 surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
-  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))  ## cp = 0.01
+  rcontrol = rpart.control(minbucket = .01 * nrow(dt.train)))  ## cp = 0.01
 ```
 
 
 **Search for Appropriate Number of Cut Points**
 ```{r,echo=FALSE,fig.width=6}
 inputPanel(
-  sliderInput("cp", label = 'cp', min = 0.001, max = .03, value = .01, 
-    step = .001, ticks = FALSE)
+  sliderInput("cp", label = 'cp (complexity parameter)', min = 0.001, max = .03,
+    value = .01, step = .001, ticks = FALSE)
 )
 
 renderPrint({
   rs <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train.bk,
-    rcontrol = rpart.control(cp  = input$cp, minbucket = .05 * nrow(dt.train.bk))) 
+    rcontrol = rpart.control(cp  = input$cp, minbucket = .01 * nrow(dt.train.bk))) 
   # print(rs$cut.points)
 })
 ```
@@ -962,7 +962,7 @@ renderPrint({
 
 ```{r}
 surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
-  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)), n.group = 3:7)
+  rcontrol = rpart.control(minbucket = .01 * nrow(dt.train)), n.group = 3:7)
 ```
 
 
