@@ -44,6 +44,8 @@ The following example illustrates how to use the `streamlineR` package to prepar
 Packages Setup
 --------------
 
+This analysis relies on other packages. If these packages are not available yet in your computer, you need to install them with the following commands.
+
 #### Install Dependent Packages
 
 ``` r
@@ -56,6 +58,8 @@ sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpar
 ```
 
 #### Load Dependent Packages
+
+After installing these packages, you need to load them into R, so that you can use the functions in those packages.
 
 ``` r
 # Load pacakges
@@ -74,8 +78,10 @@ sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpar
 
 #### Install `streamlineR` from Github
 
+The `streamlineR` package is under development on the Github platform. The package can be installed using the `install_github` function from the `devtools` package. If the `install_github` function does not work, you can download the package from [here](https://api.github.com/repos/JianhuaHuang/streamlineR/zipball/master), and then install the package locally in Rstudio (Tools -&gt; Install Packages -&gt; Install from -&gt; Package Archive File (.zip; .tar.gz))
+
 ``` r
-# Ff the install_github does not work, you can download the package from github,
+# If the install_github does not work, you can download the package from github,
 # and then install the package locally: 
 # https://api.github.com/repos/JianhuaHuang/streamlineR/zipball/master 
 devtools::install_github('JianhuaHuang/streamlineR')
@@ -85,7 +91,11 @@ library(streamlineR)
 Data Preparation
 ----------------
 
+In this example, I analyzed the primary biliary cirrhosis (PBC) data set from the survival package. The details of this data set is available [here](https://stat.ethz.ch/R-manual/R-devel/library/survival/html/pbc.html), or you can run `?survival::pbc` to find the data description within R.
+
 #### Load Data
+
+The data set can be loaded into R directly by calling the data from the package. Because the sample size is a little small, I increased the sample size by resampling the data 10000 times.
 
 ``` r
 dt <- survival::pbc %>%
@@ -127,6 +137,8 @@ head(dt)
 
 #### Split Data into Training and Test Datasets
 
+Before doing any analysis, I held out some data as test data set. The `createDataPartition` function (from `caret` package) is used to split the data into training and test data sets. The training data set is used to develop the model, and the test data set is used to test the model performance.
+
 ``` r
 set.seed(1111)
 ind.train <- createDataPartition(dt$status, p = .7, list = FALSE)
@@ -154,11 +166,21 @@ dt.test.bk <- dt.test
 Bin Training Data Based on Regression Coefficients: `bin.knn`
 -------------------------------------------------------------
 
+Before building the model with training data, we may need to convert some numerical variables to categorical variables by binning the numerical values into different groups, so that we can model the non-linear relationship between the independent and dependent variables. This package provides two methods to find the cut points for binning: `bin.knn` and `bin.rpart`.
+
+The `bin.knn` method finds the cut points based on the regression coefficients using the KNN algorithm. Generally, the `bin.knn` finds the cut points through the following steps: 1. Divide the independent variable x into some small bucket (e.g., 20 bucket) 2. Build a univariate model using x and y 3. Get the regression coefficients for each bucket 4. Use the KNN algorithm to bin the buckets into bigger groups (e.g., 5 groups), based on their orders and regression coefficients.
+
+The `bin.knn` method can now deal with Generalized Linear Models (GLM) and Survival Model (class of coxph in R). The `bin.knn` function takes four arguments: formula, data, n.group, and min.bucket. The min.bucket is the minimum ratio of records in each bucket. The min.bucket should be small enough to make that there are enough buckets for binning, and big enough to guarantee that the estimated regression coefficients are statistically reliable for all buckets.
+
+The following function bins the 20 buckets (including NA) into 5 groups represented by different colors. We can extract the cut points based on the colors for different groups.
+
 ``` r
 bin.knn(status ~ platelet, data = dt.train, n.group = 5, min.bucket = 0.05)
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-6-1.png)
+
+Although the `bin.knn` function take into acount both the order and coefficient of each bucket, it may bin some buckets together if the coefficients for some neighboring buckets are very different. In this case, we may need to change the number of groups and/or buckets by adjusting the `n.group` and/or `min.bucket` argument. This can be done interactively using the manipulate function as follows:
 
 ``` r
 manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
@@ -167,10 +189,16 @@ manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
     label = 'Minimum Population'))
 ```
 
+By changing the `n.group` and `min.bucket` repeatedly, we may be able to find the appropriate cut points.
+
 Bin Training Data Based on rpart: `bin.rpart`
 ---------------------------------------------
 
+Although the `bin.knn` method is intuitive and provides the visualization, it is difficult to find the optimal cut points manually. Another binning method `bin.rpart`, can help us to find the optimal cut points automatically, and can be applied to more models.
+
 #### Decision Tree Algorithm (Recursive Partitioning): `rpart`
+
+The `bin.rpart` relies on the output from `rpart` (recursive partitioning), a famous algorithm used to build the decision tree. The `rpart` function can produce the optimal splits of numerical data, and generates a tree-structure nodes. Based on these splits and nodes, we can extract the cut points and bin the numerical values into different groups.
 
 ``` r
 rpart(formula = status ~ age, data = dt.train, 
@@ -189,6 +217,8 @@ rpart(formula = status ~ age, data = dt.train,
     ##   3) age>=66.5 520  113.7231 0.6769231 *
 
 #### Binning for Logistic Model
+
+The usage of `bin.rpart` is very similar `rpart`, except that the *control* argument in `rpart` is named as *rcontrol* in `bin.rpart`. The following code generates the cut points and bins for **age** and **platelet**. The cut points (cut.points) and bins are saved in a list as the function outputs.
 
 ``` r
 lg.bin.age <- bin.rpart(formula = status ~ age, data = dt.train, 
@@ -214,6 +244,8 @@ lg.bin.platelet <- bin.rpart(formula = status ~ platelet, data = dt.train,
 
 #### Binning for Survival Model
 
+Compared to other packages (such as `smbinning` and `woe`) that only provides binning for logistic model, `bin.rpart` can provide the optimal binning for all models that can be passed to the `rpart` function. For example, the `bin.rpart` function can generate the optimal cut points of **age** in a survival model, if we change the dependent variable to a survival object (`Surv(time, status)`) in the formula.
+
 ``` r
 surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
   rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))  ## cp = 0.01
@@ -223,6 +255,10 @@ surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 
 #### Search for Appropriate Number of Cut Points
 
+By default, the cp (complexity parameter used to control `rpart`. The detail of the *cp* argument can be checked with `?rpart.control`) is set as 0.01, which is a little conservative for the survival model. Thus the number of cut points is usually small for the survival model, if we use the default *cp* value. We can reduce the *cp* value (e.g., 0.001) to get more cut points. We may be able to achieve an appropriate number of cut points by changing the *cp* argument repeatedly.
+
+In stead of changing the *cp* argument manually, the *n.group* (number of acceptable binning groups, can be a single number or a range) argument can help to find the appropriate number of cut points automatically. For example, if we set the acceptable *n.group* as 3:7, the `bin.rpart` function will try different *cp*, until the number of binning groups is within 3 to 7 (or the number of cut points within 2:6).
+
 ``` r
 surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
   rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)), n.group = 3:7)
@@ -231,6 +267,8 @@ surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
     ## age : 45 65
 
 #### Replace Numerical Varialbes with Bins
+
+After binning, we can replace the original numerical values with the corresponding bins saved in the outputs from `bin.rpart`.
 
 ``` r
 # We don't need the time column anmore, delete it in both dt.train and dt.test
@@ -261,8 +299,12 @@ head(dt.train)
     ## 5 45 < · <= 66      f 160 < · <= 240     4      1
     ## 6 45 < · <= 66      f 160 < · <= 240     2      0
 
+After replacing the numerical variables with bins, the numerical varialbes are converted to categorical variables automatically.
+
 Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`
 -------------------------------------------------------------
+
+For all of the categorical varialbes, it is useful to calculate some statistics of different levels. The `level.stat` function is designed for this purpose.
 
 ``` r
 col.x <- c('age', 'gender', 'platelet', 'stage')

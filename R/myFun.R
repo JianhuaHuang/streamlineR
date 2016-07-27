@@ -189,8 +189,8 @@ bin.knn <- function(formula, data, n.group, min.bucket) {
   ggplot(coef.pop, aes(x = Bin, y = Coef, fill = KNN_Group,
     color = KNN_Group, width = 3 * Freq / nrow(data))) +
     geom_bar(stat = 'identity') +
-    labs(x = 'Bins', y = 'Model Coefficients',
-      title = paste(x, ':', nrow(coef.pop), 'coefficients clustered into',
+    labs(x = 'Buckets', y = 'Model Coefficients',
+      title = paste(x, ':', nrow(coef.pop), 'buckets clustered into',
         n.group, 'groups')) +
     theme_bw() +
     scale_fill_discrete(name = 'KNN Group') +
