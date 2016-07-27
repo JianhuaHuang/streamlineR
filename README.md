@@ -44,7 +44,6 @@ The following example illustrates how to use the `streamlineR` package to prepar
 Packages Setup
 --------------
 
-<ul class="incremental">
 #### Install Dependent Packages
 
 ``` r
@@ -83,11 +82,9 @@ devtools::install_github('JianhuaHuang/streamlineR')
 library(streamlineR)
 ```
 
-</ul>
 Data Preparation
 ----------------
 
-<ul class="incremental">
 #### Load Data
 
 ``` r
@@ -154,11 +151,9 @@ dt.train.bk <- dt.train
 dt.test.bk <- dt.test
 ```
 
-</ul>
 Bin Training Data Based on Regression Coefficients: `bin.knn`
 -------------------------------------------------------------
 
-<ul class = "incremental">
 ``` r
 bin.knn(status ~ platelet, data = dt.train, n.group = 5, min.bucket = 0.05)
 ```
@@ -175,7 +170,6 @@ manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
 Bin Training Data Based on rpart: `bin.rpart`
 ---------------------------------------------
 
-<ul class="incremental">
 #### Decision Tree Algorithm (Recursive Partitioning): `rpart`
 
 ``` r
@@ -267,11 +261,9 @@ head(dt.train)
     ## 5 45 < · <= 66      f 160 < · <= 240     4      1
     ## 6 45 < · <= 66      f 160 < · <= 240     2      0
 
-</ul>
 Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`
 -------------------------------------------------------------
 
-<ul class="incremental">
 ``` r
 col.x <- c('age', 'gender', 'platelet', 'stage')
 stat.train <- level.stat(dt.train, x = col.x, y = 'status')
@@ -300,11 +292,9 @@ head(stat.train)
     ## 5      0.65 0.2525191 platelet (IV: 0.253)
     ## 6      0.02 0.2525191 platelet (IV: 0.253)
 
-</ul>
 Visualize Level Statistics: `ggstat`
 ------------------------------------
 
-<ul class="incremental">
 #### Plot with Default Arguments
 
 ``` r
@@ -331,11 +321,10 @@ ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL,
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-16-1.png)
-</ul>
+
 Replace Bins with WOE: `replace.woe`
 ------------------------------------
 
-<ul class="incremental">
 ``` r
 replace.woe(data = dt.train, level.stat.output = stat.train, replace = FALSE) %>%
   head
@@ -370,11 +359,9 @@ head(dt.train)
     ## 5  0.0815172 -0.06899025  0.01728312  0.8426449      1
     ## 6  0.0815172 -0.06899025  0.01728312 -0.5844896      0
 
-</ul>
 Correlation between Independent Variables: `corrplot.beautify`
 --------------------------------------------------------------
 
-<ul class="incremental">
 ``` r
 cor.mat <- cor(dt.train[, col.x])
 corrplot(cor.mat)
@@ -387,11 +374,10 @@ corrplot.beautify(cor.mat)
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-18-2.png)
-</ul>
+
 Logistic Model
 --------------
 
-<ul class="incremental">
 #### Full Model
 
 ``` r
@@ -483,11 +469,9 @@ data.frame(vif(lg.aic))
     ## platelet    1.004376
     ## stage       1.019196
 
-</ul>
 Prepare Test Data: `bin.custom & replace.woe`
 ---------------------------------------------
 
-<ul class="incremental">
 #### Bin Test Data: `bin.custom`
 
 ``` r
@@ -531,11 +515,9 @@ head(dt.test)
     ## 5  0.0815172 -0.06899025  0.01728312 -0.2621437      0
     ## 6 -0.3894442  0.56703353  0.31808909 -2.3669995      0
 
-</ul>
 Model Performance: `perf.auc & perf.decile`
 -------------------------------------------
 
-<ul class="incremental">
 #### Check Performance Based on AUC: `perf.auc`
 
 ``` r
@@ -568,11 +550,9 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
     ## 9       9   65.333333     70.64118    196    104        300
     ## 10     10   76.333333     79.12887    229     71        300
 
-</ul>
 Convert Coefficients to Rate: `coef2rate`
 -----------------------------------------
 
-<ul class="incremental">
 ``` r
 summary(lg.aic)
 ```
@@ -659,7 +639,7 @@ ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-25-1.png)
-</ul>
+
 Reference:
 ----------
 
