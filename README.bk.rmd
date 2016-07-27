@@ -1,0 +1,239 @@
+---
+author: "Jianhua Huang"
+date: "July 23, 2016"
+title: "Streamline Routine Modeling Work in R: streamlineR"
+output:
+  md_document:
+    toc: true
+    variant: markdown_github
+---
+
+# Streamline Routine Modeling Work in R: streamlineR
+**For an interactive presentation version, please check [here](https://jianhua.shinyapps.io/streamlineR_shinyapp/)**
+
+
+```{r,set.options, include=FALSE}
+# dir <- 'F:/Projects/Rpackage/streamlineR'
+dir <- 'C:/Users/Jianhua/Dropbox/work_doc/Rpackage/streamlineR'
+knitr::opts_chunk$set(echo = TRUE, root.dir = dir, warning=FALSE, message=FALSE)
+```
+
+
+This package is designed to streamline the routine modeling work, especially for scoring. It provides some handy functions to bin numerical variables, replace numerical variables with Weight of Evidence (WOE), ranking variables by Information Values (IV), plotting the successful/failure rates, check model performance based on AUC, and so on.This package also provides the useful function to convert the model output (e.g., coefficients) to graph/tables that are easier to understand for non-technical audience.
+
+The following example illustrates how to use the `streamlineR` package to prepare data, build models, and visualize results. 
+
+## Packages Setup
+This analysis relies on other packages. If these packages are not available yet in your computer, you need to install them with the following commands.
+```{r setup, eval=FALSE}
+# in case the default mirror is blocked in your domain, choose another one
+# chooseCRANmirror()  
+sapply(c('dplyr', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart',
+  'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC'),
+  install.packages)
+```
+
+After installing these packages, you need to load them into R, and use the `install_github` function in the `devtools` package to install the `streamlineR` package on github. 
+```{r}
+# Load packages
+sapply(c('caret', 'corrplot', 'devtools', 'dplyr','e1071', 'gridExtra', 'knitr',
+  'MASS', 'pec', 'pROC', 'rpart',  'reshape2', 'scales', 'survival'), 
+  require, character.only = TRUE)
+
+# install the streamlineR package via github
+install_github('JianhuaHuang/streamlineR')
+library(streamlineR)
+```
+
+## Data Preparation
+#### Load Data
+In this example, I analyzed the primary biliary cirrhosis (PBC) data set from the survival package. The details of this data set is available [here](https://stat.ethz.ch/R-manual/R-devel/library/survival/html/pbc.html), or you can run  `?survival::pbc` to find the data description within R. Because the sample size is a little small, I increased the sample size by resampling the data 10000 times. 
+
+```{r}
+dt <- survival::pbc %>%
+  transmute(age = round(age), gender = sex, platelet, stage = as.character(stage), 
+    time, status = as.numeric(status %in% c(1, 2))) %>%
+  filter(!is.na(stage))
+
+set.seed(1111)
+dt <- dt[sample(nrow(dt), 10000, replace = T), ]
+dim(dt)
+str(dt)
+head(dt)
+```
+
+#### Split Data into Training and Test datasets
+Before doing any analysis, let's hold out some data as testing data set. The `createDataPartition` function (from `caret` package) is used to split the data into training and test data sets. 
+```{r}
+set.seed(1111)
+ind.train <- createDataPartition(dt$status, p = .7, list = FALSE)
+dt.train <- dt[ind.train, ]
+dt.test <- dt[-ind.train, ]
+row.names(dt.train) <- 1:nrow(dt.train)
+row.names(dt.test) <- 1:nrow(dt.test)
+dim(dt.train)
+dim(dt.test)
+rm(dt)
+```
+
+
+## Binning Based on rpart: `bin.rpart`
+The numerical variables(age and platelet) in the training data set are binned into different groups based on optimal binning. The `bin.rpart` function is used perform the optimal binning. The `bin.rpart` uses the `rpart` (recursive partitioning, a famous decision tree algorithm) method to find the optimal cut points. Based on these cut points, the numerical data is divided into different groups. 
+
+The usage of `bin.rpart` is very similar `rpart`, except that the *control* argument in `rpart` is named as *rcontrol* in `bin.rpart`. The following `rpart` and `bin.rpart` functions should generate the same cut points for **age**. 
+```{r}
+rpart(formula = status ~ age, data = dt.train, 
+  control = rpart.control(minbucket = .05 * nrow(dt.train)))
+```
+
+
+#### Binning for Logistic Model 
+```{r}
+lg.bin.age <- bin.rpart(formula = status ~ age, data = dt.train, 
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))
+```
+
+In addition to cut points, the `bin.rpart` function also generates the bins, corresponding to the numerical values. Both the cut points and bins are saved in the output as a list.   
+```{r}
+str(lg.bin.age)
+```
+
+Similarly, we can bin another numerical variables (**platelet**). 
+```{r}
+lg.bin.platelet <- bin.rpart(formula = status ~ platelet, data = dt.train, 
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))
+```
+
+
+#### Binning for Survival Model 
+Compared to other packages (such as `smbinning` and `woe`) that only provides binning for logistic model, `bin.rpart` can provide the optimal binning for all models that can be passed to the `rpart` function. For example, the `bin.rpart` function can generate the optimal cut points of **age** in a survival model, if we change the dependent variable to a survival object (`Surv(time, status)`) in the formula. 
+```{r}
+surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)))  ## cp = 0.01
+```
+
+By default, the cp (complexity parameter used to control `rpart`. The detail of the *cp* argument can be checked with `?rpart.control`) is set as 0.01, which is a little conservative for the survival model. Thus the number of cut points is usually small for the survival model, if we use the default *cp* value. We can reduce the *cp* value (e.g., 0.001) to get more cut points. We may be able to achieve an appropriate number of cut points by changing the *cp* argument repeatedly. 
+```{r}
+surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
+  rcontrol = rpart.control(cp  = .001, minbucket = .05 * nrow(dt.train)))  
+```
+
+In stead of changing the *cp* argument manually, the *n.group* (number of acceptable binning groups, can be a single number or a range) argument can help to find the appropriate number of cut points automatically. For example, if we set the acceptable *n.group* as 3:7, the `bin.rpart` function will try different *cp*, until the number of binning groups is within 3 to 7 (or the number of cut points within 2:6). 
+```{r}
+surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
+  rcontrol = rpart.control(minbucket = .05 * nrow(dt.train)), n.group = 3:7)
+
+# remove the time column. We only use it to illustrate the binning for survival 
+# model. After that, we don't need the time column any more. 
+dt.train <- dplyr::select(dt.train, -time)
+dt.test <- dplyr::select(dt.test, -time)
+```
+
+
+#### Replace numerical Varialbes with Bins 
+After binning, we can replace the original numerical values with the corresponding bins saved in the outputs.
+```{r}
+dt.train$age <- lg.bin.age$bins
+dt.train$platelet <- lg.bin.platelet$bins
+head(dt.train)  # Now, the data should not contain any numerical dependent variable
+```
+
+
+## Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`
+```{r}
+col.x <- c('age', 'gender', 'platelet', 'stage')
+stat.train <- level.stat(dt.train, x = col.x, y = 'status')
+head(stat.train)
+```
+
+
+## Visualizing Level Statistics: `ggstat`
+```{r}
+ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
+  y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Rate.group',
+  bar.width.label = 'Perc.group', n.col = NULL)
+```
+
+
+#### Constant Bar Width 
+```{r}
+ggstat(stat.train, bar.width = NULL)
+```
+
+
+#### Plot WOE 
+```{r,fig.height=3}
+stat.train$WOE.round <- round(stat.train$WOE, 2)
+ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL, 
+  bar.width.label = NULL, n.col = 4)
+```
+
+
+## Replace Bins with WOE: `replace.woe`
+```{r}
+replace.woe(data = dt.train, level.stat.output = stat.train) %>% head
+
+dt.train.org <- dt.train
+dt.train <- replace.woe(data = dt.train, level.stat.output = stat.train, 
+  replace = TRUE)
+head(dt.train)
+```
+
+
+## Correlation between Independent Variables: `corrplot.beautify`
+```{r}
+cor.mat <- cor(dt.train[, col.x])
+corrplot.beautify(cor.mat)
+```
+
+
+## Logistic Model
+```{r}
+lg <- glm(status ~ ., dt.train, family=binomial(link='logit'))
+summary(lg)
+
+lg.aic <- stepAIC(lg, k =  qchisq(0.05, 1, lower.tail=F))   # p to enter: 0.05
+summary(lg.aic)
+```
+
+
+## Preparing Test Data: `bin.custom & replace.woe`
+#### Bin Test Data: `bin.custom`
+```{r}
+head(dt.test)
+dt.test$age <-  bin.custom(dt.test$age, cut.p = lg.bin.age$cut.points)
+dt.test$platelet <- bin.custom(dt.test$platelet, cut.p = lg.bin.platelet$cut.points)
+head(dt.test)
+```
+
+
+#### Replace Binned Test Data with WOE: `replace.woe`
+```{r}
+dt.test <- replace.woe(dt.test, level.stat.output = stat.train, replace = TRUE)
+head(dt.test)
+```
+
+
+## Model Performance: `perf.auc & perf.decile`
+#### Check Performance Based on AUC: `perf.auc`
+```{r}
+perf.auc(model = lg.aic, dt.train, dt.test)
+```
+
+#### Check Performance Based on Decile Rate: `perf.decile`
+```{r}
+pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
+perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
+```
+
+
+## Convert Coefficients to Rate: `coef2rate`
+```{r}
+pred.stat <- coef2rate(data = dt.test, model = lg.aic, 
+  level.stat.output = stat.train, force.change = TRUE)
+head(pred.stat)
+pred.stat[,c('Rate.1', 'Pred.Rate.1')]
+
+ggstat(pred.stat, y = 'Pred.Rate.1')
+```
+

@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 ```
 
 
-## Package Setup
+## Packages Setup
 <ul class = "incremental">
 **Install Dependent Packages**
 ```{r, eval=FALSE}
@@ -141,6 +141,7 @@ surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 ```
 
 
+**Search for Appropriate Number of Cut Points**
 ```{r,echo=FALSE,fig.width=6}
 inputPanel(
   sliderInput("cp", label = 'cp', min = 0.001, max = .03, value = .01, 
@@ -163,7 +164,8 @@ surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 
 **Replace Numerical Varialbes with Bins**
 ```{r}
-dt.train <- dplyr::select(dt.train, -time)
+# We don't need the time column anmore, delete it in both dt.train and dt.test
+dt.train <- dplyr::select(dt.train, -time)  
 dt.test <- dplyr::select(dt.test, -time)
 head(dt.train)
 dt.train$age <- lg.bin.age$bins
@@ -182,15 +184,13 @@ head(stat.train)
 ```
 </ul>
 
-## Visualizing Level Statistics: `ggstat`
+## Visualize Level Statistics: `ggstat`
 <ul class = "incremental">
 **Plot with Default Arguments**
 ```{r}
 ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Rate.group',
   bar.width.label = 'Perc.group', n.col = NULL)
-
-ggstat(stat.train)
 ```
 
 **Constant Bar Width**
@@ -200,7 +200,6 @@ ggstat(stat.train, bar.width = NULL)
 
 **Plot WOE**
 ```{r,fig.height=3}
-stat.train$WOE.round <- round(stat.train$WOE, 2)
 ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL, 
   bar.width.label = NULL, n.col = 4)
 ```
@@ -262,7 +261,7 @@ head(dt.test)
 ```
 </ul>
 
-## Model Performance: `perf.auc & perf.decile`
+## Check Model Performance: `perf.auc & perf.decile`
 <ul class = "incremental">
 **Check Performance Based on AUC**: `perf.auc`
 ```{r}
@@ -281,9 +280,10 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 ## Convert Coefficients to Rate: `coef2rate`
 <ul class = "incremental">
 ```{r}
+summary(lg.aic)
 pred.stat <- coef2rate(data = dt.test, model = lg.aic, 
   level.stat.output = stat.train, force.change = TRUE)
-
+head(pred.stat)
 # Compare The Actual & Prediction Rates
 pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 
