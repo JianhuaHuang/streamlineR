@@ -9,7 +9,7 @@ output:
 ---
 
 # Streamline Routine Modeling Work in R:streamlineR
-**For an interctive presentation version, please check [here](https://jianhua.shinyapps.io/streamlineR_shinyapp/)**
+**For an interactive presentation version, please check [here](https://jianhua.shinyapps.io/streamlineR_shinyapp/)**
 
 
 ```{r,set.options, include=FALSE}
