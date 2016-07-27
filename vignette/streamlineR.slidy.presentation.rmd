@@ -1,5 +1,5 @@
 ---
-title: 'Streamline Rountine Modeling Work in R: streamlineR'
+title: 'Streamline Routine Modeling Work in R: streamlineR'
 author: "Jianhua Huang"
 date: "July 27, 2016"
 output: 
@@ -18,28 +18,41 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 ```
 
 
-## Data Preparation 
+## Package Setup
 <ul class = "incremental">
+**Install Dependent Packages**
 ```{r, eval=FALSE}
 # If the default mirror is blocked, choose another mirror to install R packages, 
 # chooseCRANmirror()
 sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
-  'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
+  'scales', 'shiny', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
   'manipulate'), 
   install.packages)
 ```
 
-
+**Load Dependent Packages**
 ```{r}
 # Load pacakges
 sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
   'scales', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
   'manipulate'), 
   require, character.only = TRUE)
+```
 
+**Install `streamlineR` from Github**
+```{r}
+# Ff the install_github does not work, you can download the package from github,
+# and then install the package locally: 
+# https://api.github.com/repos/JianhuaHuang/streamlineR/zipball/master 
 devtools::install_github('JianhuaHuang/streamlineR')
 library(streamlineR)
+```
+</ul>
 
+## Data Preparation
+<ul class = "incremental">
+**Load Data**
+```{r}
 dt <- survival::pbc %>%
   transmute(age = round(age), gender = sex, platelet, stage = as.character(stage), 
     time, status = as.numeric(status %in% c(1, 2))) %>%
@@ -52,9 +65,8 @@ dim(dt)
 str(dt)
 head(dt)
 ```
-</ul>
 
-## Split Data into Training and Test datasets
+**Split Data into Training and Test Datasets**
 ```{r}
 set.seed(1111)
 ind.train <- createDataPartition(dt$status, p = .7, list = FALSE)
@@ -69,32 +81,42 @@ dim(dt.test)
 dt.train.bk <- dt.train
 dt.test.bk <- dt.test
 ```
+</ul>
 
-## Binning Based on Regression Coefficients: `bin.knn`
+
+## Bin Training Data Based on Regression Coefficients: `bin.knn`
+<ul class = "incremental">
+```{r}
+bin.knn(status ~ platelet, data = dt.train, n.group = 5, min.bucket = 0.05)
+```
+
+
 ```{r,eval=FALSE}
-manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.pop),
+manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
   n.group = slider(1, 10, step = 1, initial = 5, label = 'Number of Groups'),
-  min.pop = slider(0.01, .2, step = 0.01, initial = 0.05,
+  min.bucket = slider(0.01, .2, step = 0.01, initial = 0.05,
     label = 'Minimum Population'))
 ```
+
 
 ```{r,echo=FALSE}
 inputPanel(
   sliderInput("n_group", label = 'Number of Groups',
-              min = 1, max = 9, value = 5, step = 1),
+              min = 1, max = 9, value = 5, step = 1, ticks = FALSE),
   sliderInput("min_pop", label = 'Minimum Population',
-              min = 0.01, max = .2, value = .05, step = .01)
+              min = 0.01, max = .2, value = .05, step = .01, ticks = FALSE)
 )
 
 renderPlot({
   bin.knn(formula = status ~ platelet, data = dt.train.bk, 
-    n.group = input$n_group, min.pop = input$min_pop)
+    n.group = input$n_group, min.bucket = input$min_pop)
 })
 ```
+</ul>
 
-
-## Binning Based on rpart: `bin.rpart`
+## Bin Training Data Based on rpart: `bin.rpart` 
 <ul class = "incremental">
+**Decision Tree Algorithm (Recursive Partitioning)**: `rpart`
 ```{r}
 rpart(formula = status ~ age, data = dt.train, 
   control = rpart.control(minbucket = .01 * nrow(dt.train)))
@@ -121,8 +143,8 @@ surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 
 ```{r,echo=FALSE,fig.width=6}
 inputPanel(
-  sliderInput("cp", label = 'cp',
-              min = 0.001, max = .03, value = .01, step = .001)
+  sliderInput("cp", label = 'cp', min = 0.001, max = .03, value = .01, 
+    step = .001, ticks = FALSE)
 )
 
 renderPrint({
@@ -139,7 +161,7 @@ surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 ```
 
 
-**Replace numerical Varialbes with Bins**
+**Replace Numerical Varialbes with Bins**
 ```{r}
 dt.train <- dplyr::select(dt.train, -time)
 dt.test <- dplyr::select(dt.test, -time)
@@ -162,6 +184,7 @@ head(stat.train)
 
 ## Visualizing Level Statistics: `ggstat`
 <ul class = "incremental">
+**Plot with Default Arguments**
 ```{r}
 ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Rate.group',
@@ -170,12 +193,10 @@ ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
 ggstat(stat.train)
 ```
 
-
 **Constant Bar Width**
 ```{r}
 ggstat(stat.train, bar.width = NULL)
 ```
-
 
 **Plot WOE**
 ```{r,fig.height=3}
@@ -208,10 +229,14 @@ corrplot.beautify(cor.mat)
 
 ## Logistic Model
 <ul class = "incremental">
+**Full Model**
 ```{r}
 lg <- glm(status ~ ., dt.train, family=binomial(link='logit'))
 summary(lg)
+```
 
+**Stepwise Variable Selection**
+```{r}
 lg.aic <- stepAIC(lg, k =  qchisq(0.05, 1, lower.tail=F))   # p to enter: 0.05
 summary(lg.aic)
 
@@ -219,7 +244,7 @@ data.frame(vif(lg.aic))
 ```
 </ul>
 
-## Preparing Test Data: `bin.custom & replace.woe`
+## Prepare Test Data: `bin.custom & replace.woe`
 <ul class = "incremental">
 **Bin Test Data**: `bin.custom`
 ```{r}
@@ -258,7 +283,8 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 ```{r}
 pred.stat <- coef2rate(data = dt.test, model = lg.aic, 
   level.stat.output = stat.train, force.change = TRUE)
-head(pred.stat)
+
+# Compare The Actual & Prediction Rates
 pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 
 ggstat(pred.stat, y = 'Pred.Rate.1')
@@ -267,10 +293,6 @@ ggstat(pred.stat, y = 'Pred.Rate.1')
 
 ## Reference:
 * streamlineR package information: https://github.com/JianhuaHuang/streamlineR 
-* to submit bug: http://github.com/JianhuaHuang/streamlineR/issues
-<!-- link to website -->
-<!-- package information -->
-<!-- decision tree algorithm: rpart https://github.com/JianhuaHuang/streamlineR#data-preparation -->
-<!-- precision recall -->
+* Submit bug: http://github.com/JianhuaHuang/streamlineR/issues
 
 

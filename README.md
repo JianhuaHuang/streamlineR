@@ -1,4 +1,4 @@
--   [Streamline Rountine Modeling Work in R: streamlineR](#streamline-rountine-modeling-work-in-r-streamliner)
+-   [Streamline Routine Modeling Work in R:streamlineR](#streamline-routine-modeling-work-in-rstreamliner)
     -   [R Setup](#r-setup)
     -   [Data Preparation](#data-preparation)
     -   [Split Data into Training and Test datasets](#split-data-into-training-and-test-datasets)
@@ -21,8 +21,10 @@
         -   [Check Performance Based on Decile Rate: `perf.decile`](#check-performance-based-on-decile-rate-perf.decile)
     -   [Convert Coefficients to Rate: `coef2rate`](#convert-coefficients-to-rate-coef2rate)
 
-Streamline Rountine Modeling Work in R: streamlineR
-===================================================
+Streamline Routine Modeling Work in R:streamlineR
+=================================================
+
+**For an interctive presentation version, please check [here](https://jianhua.shinyapps.io/streamlineR_shinyapp/)**
 
 This package is designed to streamline the routine modeling work, especially for scoring. It provides some handy functions to bin numerical variables, replace numerical variables with Weight of Evidence (WOE), ranking varialbes by Information Values (IV), plotting the successful/failure rates, check model performance based on AUC, and so on.This package also provides the useful function to convert the model output (e.g., coefficients) to graph/tables that are easier to understand for non-technical audience.
 
@@ -560,6 +562,3 @@ ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-23-1.png)
-
-<iframe width="560" height="315" src="http://www.youtube.com/embed/9bZkp7q19f0?rel=0" frameborder="0" allowfullscreen>
-</iframe>

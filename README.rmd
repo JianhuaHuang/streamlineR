@@ -1,14 +1,15 @@
 ---
 author: "Jianhua Huang"
 date: "July 23, 2016"
-title: "Streamline Rountine Modeling Work in R: streamlineR"
-output: 
+title: "Streamline Routine Modeling Work in R: streamlineR"
+output:
   md_document:
     toc: true
     variant: markdown_github
 ---
 
-# Streamline Rountine Modeling Work in R: streamlineR
+# Streamline Routine Modeling Work in R:streamlineR
+**For an interctive presentation version, please check [here](https://jianhua.shinyapps.io/streamlineR_shinyapp/)**
 
 
 ```{r,set.options, include=FALSE}
@@ -236,4 +237,3 @@ pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
-<iframe width="560" height="315" src="http://www.youtube.com/embed/9bZkp7q19f0?rel=0" frameborder="0" allowfullscreen></iframe>
