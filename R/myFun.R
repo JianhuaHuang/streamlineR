@@ -614,7 +614,7 @@ survexp.obo <- function(data, ratetable, ...) {
 # rs <- survexp.obo(data = dt.conv.test, ratetable = cox.conv.train)
 
 ## conver the regression coefficients to meaningful rates
-coef2rate <- function(data, model, level.stat.output, force.change = TRUE,
+coef2rate <- function(model, data, level.stat.output, force.change = TRUE,
   time = NULL) {
   xs <- labels(model$terms)
   

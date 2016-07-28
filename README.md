@@ -29,7 +29,7 @@
         -   [Check Performance Based on AUC: `perf.auc`](#check-performance-based-on-auc-perf.auc)
         -   [Check Performance Based on Decile Rate: `perf.decile`](#check-performance-based-on-decile-rate-perf.decile)
     -   [Convert Coefficients to Rate: `coef2rate`](#convert-coefficients-to-rate-coef2rate)
-    -   [Reference:](#reference)
+    -   [Reference](#reference)
 
 Streamline Routine Modeling Work in R: streamlineR
 ==================================================
@@ -616,7 +616,7 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
     ## Source: local data frame [10 x 6]
     ## 
     ##    Decile Actual.rate Predict.rate Freq.1 Freq.0 Freq.group
-    ##     <int>       <dbl>        <dbl>  <dbl>  <dbl>      <int>
+    ##     (int)       (dbl)        (dbl)  (dbl)  (dbl)      (int)
     ## 1       1    6.666667     10.11034     20    280        300
     ## 2       2   33.333333     25.05685    100    200        300
     ## 3       3   17.666667     30.32782     53    247        300
@@ -631,41 +631,13 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 Convert Coefficients to Rate: `coef2rate`
 -----------------------------------------
 
-After checking the model performance, it is also useful to present the regression model output in a audience-friendly style. Since the model is built with WOE, the explanation of the regression coefficients is a bit difficult, since it doesn't relate to the original data directly. The `coef2rate` function is designed to convert these technical coefficients back to the good/bad rates for each group and variables, so that the audience can understand it immediately.
+After checking the model performance, it is also useful to produce the regression model outputs in a audience-friendly style. Since the model is built with WOE, the explanation of the regression coefficients is a bit difficult, since it doesn't relate to the original data directly. The `coef2rate` function is designed to convert these coefficients back to the good/bad rates for each group and variables, so that the non-technical audience can understand it easily. The `coef2rate` function works in two different ways dependent on whether *force.change* is *FALSE* or *TRUE*:
+
+-   If *force.change* is set to *FALSE*, the function will estimate the predicted value for each record of the given *data* using the given *model*. Then, average the predicted value for each group (if the WOE is used for modeling, the group will be WOE value) and variable.
+-   If the *force.change* is set to *TRUE*, the function will go through each predictor, force the value in this predictor to be one of its group (WOE) and keep all other predictors unchanged, and then calculate the predicted value for each record. By averaging the values for all record, we get a single *Pred.Rate.1* for the given group and predictor. We can get the average predicted value for all groups and predictors, by going through them one by one. The idea behind *force.change* originates from the interpretation of regression coefficients - keep all other variables unchanged, and only change the value for one predictor. By doing this, we can get the pure effect of that variable.
 
 ``` r
-summary(lg.aic)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = status ~ age + gender + platelet + stage, family = binomial(link = "logit"), 
-    ##     data = dt.train)
-    ## 
-    ## Deviance Residuals: 
-    ##     Min       1Q   Median       3Q      Max  
-    ## -2.1894  -0.9819  -0.4810   1.0177   2.3207  
-    ## 
-    ## Coefficients:
-    ##             Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept) -0.22287    0.02645  -8.427  < 2e-16 ***
-    ## age          0.66073    0.07844   8.423  < 2e-16 ***
-    ## gender       0.91794    0.13786   6.658 2.77e-11 ***
-    ## platelet     0.91373    0.05535  16.508  < 2e-16 ***
-    ## stage        0.90668    0.03928  23.083  < 2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 9608.7  on 6999  degrees of freedom
-    ## Residual deviance: 8327.6  on 6995  degrees of freedom
-    ## AIC: 8337.6
-    ## 
-    ## Number of Fisher Scoring iterations: 4
-
-``` r
-pred.stat <- coef2rate(data = dt.test, model = lg.aic, 
+pred.stat <- coef2rate(model = lg.aic, data = dt.test, 
   level.stat.output = stat.train, force.change = TRUE)
 head(pred.stat)
 ```
@@ -693,7 +665,7 @@ head(pred.stat)
     ## 6      0.02 0.2525191 platelet (IV: 0.253)  0.44853001
 
 ``` r
-# Compare The Actual & Prediction Rates
+# Compare The Actual & Prediction Rates, they should be close to each other
 pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 ```
 
@@ -714,14 +686,16 @@ pred.stat[,c('Rate.1', 'Pred.Rate.1')]
     ## 14 0.58244681  0.55045875
     ## 15 0.42477593  0.42933215
 
+After calculating the *Pred.Rate.1*, we can again plot it using the ggstat function by setting `y = 'Pred.Rate.1'`
+
 ``` r
 ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-25-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-26-1.png)
 
-Reference:
-----------
+Reference
+---------
 
 -   streamlineR package information: <https://github.com/JianhuaHuang/streamlineR>
 -   Submit bug: <http://github.com/JianhuaHuang/streamlineR/issues>

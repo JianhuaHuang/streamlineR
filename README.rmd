@@ -295,19 +295,26 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 
 
 ## Convert Coefficients to Rate: `coef2rate`
-After checking the model performance, it is also useful to present the regression model output in a audience-friendly style. Since the model is built with WOE, the explanation of the regression coefficients is a bit difficult, since it doesn't relate to the original data directly. The `coef2rate` function is designed to convert these technical coefficients back to the good/bad rates for each group and variables, so that the audience can understand it immediately.  
+After checking the model performance, it is also useful to produce the regression model outputs in a audience-friendly style. Since the model is built with WOE, the explanation of the regression coefficients is a bit difficult, since it doesn't relate to the original data directly. The `coef2rate` function is designed to convert these coefficients back to the good/bad rates for each group and variables, so that the non-technical audience can understand it easily. The `coef2rate` function works in two different ways dependent on whether *force.change* is *FALSE* or *TRUE*:
+
++ If *force.change* is set to *FALSE*, the function will estimate the predicted value for each record of the given *data* using the given *model*. Then, average the predicted value for each group (if the WOE is used for modeling, the group will be WOE value) and variable. 
++ If the *force.change* is set to *TRUE*, the function will go through each predictor, force the value in this predictor to be one of its group (WOE) and keep all other predictors unchanged, and then calculate the predicted value for each record. By averaging the values for all record, we get a single *Pred.Rate.1* for the given group and predictor. We can get the average predicted value for all groups and predictors, by going through them one by one. The idea behind *force.change* originates from the interpretation of regression coefficients - keep all other variables unchanged, and only change the value for one predictor. By doing this, we can get the pure effect of that variable. 
+
 ```{r}
-summary(lg.aic)
-pred.stat <- coef2rate(data = dt.test, model = lg.aic, 
+pred.stat <- coef2rate(model = lg.aic, data = dt.test, 
   level.stat.output = stat.train, force.change = TRUE)
 head(pred.stat)
-# Compare The Actual & Prediction Rates
-pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 
+# Compare The Actual & Prediction Rates, they should be close to each other
+pred.stat[,c('Rate.1', 'Pred.Rate.1')]
+```
+
+After calculating the *Pred.Rate.1*, we can again plot it using the ggstat function by setting `y = 'Pred.Rate.1'`
+```{r}
 ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
 
-## Reference:
+## Reference
 * streamlineR package information: https://github.com/JianhuaHuang/streamlineR 
 * Submit bug: http://github.com/JianhuaHuang/streamlineR/issues
