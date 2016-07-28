@@ -15,13 +15,11 @@
         -   [Replace Numerical Varialbes with Bins](#replace-numerical-varialbes-with-bins)
     -   [Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`](#level-statistics-frequence-rate-woe-and-iv-level.stat)
     -   [Visualize Level Statistics: `ggstat`](#visualize-level-statistics-ggstat)
-        -   [Plot with Default Arguments](#plot-with-default-arguments)
         -   [Constant Bar Width](#constant-bar-width)
         -   [Plot WOE](#plot-woe)
     -   [Replace Bins with WOE: `replace.woe`](#replace-bins-with-woe-replace.woe)
     -   [Correlation between Independent Variables: `corrplot.beautify`](#correlation-between-independent-variables-corrplot.beautify)
     -   [Logistic Model](#logistic-model)
-        -   [Full Model](#full-model)
         -   [Stepwise Variable Selection](#stepwise-variable-selection)
     -   [Prepare Test Data: `bin.custom & replace.woe`](#prepare-test-data-bin.custom-replace.woe)
         -   [Bin Test Data: `bin.custom`](#bin-test-data-bin.custom)
@@ -304,11 +302,11 @@ After replacing the numerical variables with bins, the numerical varialbes are c
 Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`
 -------------------------------------------------------------
 
-For all of the categorical varialbes, it is useful to calculate some statistics of different levels. The `level.stat` function is designed for this purpose.
+For all of the categorical varialbes, it is useful to calculate some statistics (e.g., population frequence, good/bad rates, and WOE) for different levels and variables, before building the models. The `level.stat` function is designed for this purpose. In order to use the `level.stat` function, the dependent variable (y) should be binary, and you should specify which value is flagged as 0/1 in the `level.stat` output.
 
 ``` r
 col.x <- c('age', 'gender', 'platelet', 'stage')
-stat.train <- level.stat(dt.train, x = col.x, y = 'status')
+stat.train <- level.stat(dt.train, x = col.x, y = 'status', flag.0 = 0, flag.1 = 1)
 head(stat.train)
 ```
 
@@ -337,7 +335,7 @@ head(stat.train)
 Visualize Level Statistics: `ggstat`
 ------------------------------------
 
-#### Plot with Default Arguments
+In accompany with the `level.stat` function, is the visualization of its output using the `ggstat` function. The `ggstat` function employs the `ggplot2` package to plot the statistics for different groups and variables. \#\#\#\# Plot with Default Arguments
 
 ``` r
 ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
@@ -345,9 +343,11 @@ ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   bar.width.label = 'Perc.group', n.col = NULL)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-14-1.png) The `ggstat` function takes multiple arguments. All of the arguments have default values, except the first one (data). You only need to specify the data, which is usually the output from the `level.stat` function (It can also be other data, but the default arguments need to be changed.), to plot the *Rate.1* for different groups and variables.
 
 #### Constant Bar Width
+
+The default arguments can be changed to other values to make the plot looks different. For example, if we don't want to use width of the bar to represent the ratio of population in each group, we can set `bar.width = NULL`, so that the same width is used for each bar.
 
 ``` r
 ggstat(stat.train, bar.width = NULL)
@@ -356,6 +356,8 @@ ggstat(stat.train, bar.width = NULL)
 ![](README_files/figure-markdown_github/unnamed-chunk-15-1.png)
 
 #### Plot WOE
+
+We can also plot other statistics (e.g., "WOE") by changing the *y* value to `y = 'WOE'`, and and *y.label* to `y.label = 'WOE.round'`. We can also set the number of columns for the plot by changing the *n.col* argument.
 
 ``` r
 ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL, 
@@ -366,6 +368,8 @@ ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL,
 
 Replace Bins with WOE: `replace.woe`
 ------------------------------------
+
+For logistic model, sometimes it is useful to convert original categorical variables into numeric WOE value, since it can guarantee the linearity between the dependent and independent variables. The *replace* argument can be used to control whether the original values should be replaced (`replace = TRUE`) or not (\`replace = FALSE'). If the *replace* argument is set to *TRUE*, the original values will be replaced by the corresponding WOE values directly. If the *replace* argument is set to *FALSE*, the *WOE* value will be added as a new column with \*\_woe\* appended to the original column name.
 
 ``` r
 replace.woe(data = dt.train, level.stat.output = stat.train, replace = FALSE) %>%
@@ -404,6 +408,8 @@ head(dt.train)
 Correlation between Independent Variables: `corrplot.beautify`
 --------------------------------------------------------------
 
+Another advantage of converting categorical values to WOE is that we can calculate the correlation between all independent variables, since they are all numeric values.In order to do this, we need to calculate the correlation matrix between the independent varialbes, and then visualize them using the `corrplot` or `corrplot.beautify` function.
+
 ``` r
 cor.mat <- cor(dt.train[, col.x])
 corrplot(cor.mat)
@@ -420,7 +426,7 @@ corrplot.beautify(cor.mat)
 Logistic Model
 --------------
 
-#### Full Model
+With the WOE values, we are ready to build the logistic regression model with the training data set. \#\#\#\# Full Model
 
 ``` r
 lg <- glm(status ~ ., dt.train, family=binomial(link='logit'))
@@ -455,6 +461,8 @@ summary(lg)
     ## Number of Fisher Scoring iterations: 4
 
 #### Stepwise Variable Selection
+
+Then, we can select the significant variables with the `stepAIC` function from the `MASS` package. It is worth to mention that there is no argument that controls the p-to-enter directly in the function, since the variable seletion is based on AIC. Instead, we can adjust the *k* value to control the threshold for a variable to enter into the model. For discussion about the usage of *k* argument, please refer to this [thread](http://stats.stackexchange.com/questions/97257/stepwise-regression-in-r-critical-p-value)
 
 ``` r
 lg.aic <- stepAIC(lg, k =  qchisq(0.05, 1, lower.tail=F))   # p to enter: 0.05
@@ -502,7 +510,7 @@ summary(lg.aic)
     ## Number of Fisher Scoring iterations: 4
 
 ``` r
-data.frame(vif(lg.aic))
+data.frame(vif(lg.aic))  # check the multicollinearity between predictors
 ```
 
     ##          vif.lg.aic.
@@ -514,7 +522,11 @@ data.frame(vif(lg.aic))
 Prepare Test Data: `bin.custom & replace.woe`
 ---------------------------------------------
 
+After building the model, we need to check the model performance using the test data, which we hold out at the very beginning of the analysis. In order to use the test data to check the model performance, we need to convert the original values to bins, and then to WOE, so that it can be used in the model.
+
 #### Bin Test Data: `bin.custom`
+
+In order to bin the test data, we need to use the `bin.custom` function. This function requires two arguments: the data needed to be binned, and its cut points. Since we already saved the optimal cut points for the training data, we can use those cut points to cut the test data into different bins directly.
 
 ``` r
 head(dt.test)
@@ -544,6 +556,8 @@ head(dt.test)
 
 #### Replace Binned Test Data with WOE: `replace.woe`
 
+After converting the original numeric values into different bins, then we can replace the bins with the corresponding WOE values estimated based on the training data.
+
 ``` r
 dt.test <- replace.woe(dt.test, level.stat.output = stat.train, replace = TRUE)
 head(dt.test)
@@ -560,7 +574,11 @@ head(dt.test)
 Model Performance: `perf.auc & perf.decile`
 -------------------------------------------
 
+Now, with the test data in shape of WOE values, we can check the model performance based on AUC (Area Under Curve) or decile rates.
+
 #### Check Performance Based on AUC: `perf.auc`
+
+In order to check the performance of AUC, the `perf.auc` function requires the model, the training data, and the test data. Then the function will generate the AUC and ROC curve for both the training and test data sets.
 
 ``` r
 perf.auc(model = lg.aic, dt.train, dt.test)
@@ -569,6 +587,10 @@ perf.auc(model = lg.aic, dt.train, dt.test)
 ![](README_files/figure-markdown_github/unnamed-chunk-23-1.png)
 
 #### Check Performance Based on Decile Rate: `perf.decile`
+
+Thought the AUC makes sense to some technical people who know statistics well, it may not be sensible to the non-technical audience. In order to introduce the model performance in a way that is easier to understand, we may need the `perf.decile` function. This function takes the actual status (*actual*), and the predicted probability (*pred*) as inputs, and generate the performance figure in the following steps. 1. Rank the *pred* probability, and divide the records into 10 different groups (deciles) 2. Calculate the actual and predicted rates in each decile 3. Plot the actual and predicted rates, together with the diagonal reference line.
+
+If a model performs well, the predicted rates should match with the actual values well, which means the decile points should be around the reference line, and the good deciles should be far away from the bad deciles.
 
 ``` r
 pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
@@ -594,6 +616,8 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 
 Convert Coefficients to Rate: `coef2rate`
 -----------------------------------------
+
+After checking the model performance, it is also useful to present the regression model output in a audience-friendly style. Since the model is built with WOE, the explanation of the regression coefficients is a bit difficult, since it doesn't relate to the original data directly. The `coef2rate` function is designed to convert these technical coefficients back to the good/bad rates for each group and variables, so that the audience can understand it immediately.
 
 ``` r
 summary(lg.aic)
