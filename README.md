@@ -15,6 +15,7 @@
         -   [Replace Numerical Varialbes with Bins](#replace-numerical-varialbes-with-bins)
     -   [Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`](#level-statistics-frequence-rate-woe-and-iv-level.stat)
     -   [Visualize Level Statistics: `ggstat`](#visualize-level-statistics-ggstat)
+        -   [Plot with Default Arguments](#plot-with-default-arguments)
         -   [Constant Bar Width](#constant-bar-width)
         -   [Plot WOE](#plot-woe)
     -   [Replace Bins with WOE: `replace.woe`](#replace-bins-with-woe-replace.woe)
@@ -166,7 +167,12 @@ Bin Training Data Based on Regression Coefficients: `bin.knn`
 
 Before building the model with training data, we may need to convert some numerical variables to categorical variables by binning the numerical values into different groups, so that we can model the non-linear relationship between the independent and dependent variables. This package provides two methods to find the cut points for binning: `bin.knn` and `bin.rpart`.
 
-The `bin.knn` method finds the cut points based on the regression coefficients using the KNN algorithm. Generally, the `bin.knn` finds the cut points through the following steps: 1. Divide the independent variable x into some small bucket (e.g., 20 bucket) 2. Build a univariate model using x and y 3. Get the regression coefficients for each bucket 4. Use the KNN algorithm to bin the buckets into bigger groups (e.g., 5 groups), based on their orders and regression coefficients.
+The `bin.knn` method finds the cut points based on the regression coefficients using the KNN algorithm. Generally, the `bin.knn` finds the cut points through the following steps:
+
+1.  Divide the independent variable x into some small bucket (e.g., 20 bucket)
+2.  Build a univariate model using x and y
+3.  Get the regression coefficients for each bucket
+4.  Use the KNN algorithm to bin the buckets into bigger groups (e.g., 5 groups), based on their orders and regression coefficients.
 
 The `bin.knn` method can now deal with Generalized Linear Models (GLM) and Survival Model (class of coxph in R). The `bin.knn` function takes four arguments: formula, data, n.group, and min.bucket. The min.bucket is the minimum ratio of records in each bucket. The min.bucket should be small enough to make that there are enough buckets for binning, and big enough to guarantee that the estimated regression coefficients are statistically reliable for all buckets.
 
@@ -335,7 +341,9 @@ head(stat.train)
 Visualize Level Statistics: `ggstat`
 ------------------------------------
 
-In accompany with the `level.stat` function, is the visualization of its output using the `ggstat` function. The `ggstat` function employs the `ggplot2` package to plot the statistics for different groups and variables. \#\#\#\# Plot with Default Arguments
+In accompany with the `level.stat` function, is the visualization of its output using the `ggstat` function. The `ggstat` function employs the `ggplot2` package to plot the statistics for different groups and variables.
+
+#### Plot with Default Arguments
 
 ``` r
 ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
@@ -343,7 +351,9 @@ ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   bar.width.label = 'Perc.group', n.col = NULL)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-14-1.png) The `ggstat` function takes multiple arguments. All of the arguments have default values, except the first one (data). You only need to specify the data, which is usually the output from the `level.stat` function (It can also be other data, but the default arguments need to be changed.), to plot the *Rate.1* for different groups and variables.
+![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)
+
+The `ggstat` function takes multiple arguments. All of the arguments have default values, except the first one (data). You only need to specify the data, which is usually the output from the `level.stat` function (It can also be other data, but the default arguments need to be changed.), to plot the *Rate.1* for different groups and variables.
 
 #### Constant Bar Width
 
@@ -588,7 +598,11 @@ perf.auc(model = lg.aic, dt.train, dt.test)
 
 #### Check Performance Based on Decile Rate: `perf.decile`
 
-Thought the AUC makes sense to some technical people who know statistics well, it may not be sensible to the non-technical audience. In order to introduce the model performance in a way that is easier to understand, we may need the `perf.decile` function. This function takes the actual status (*actual*), and the predicted probability (*pred*) as inputs, and generate the performance figure in the following steps. 1. Rank the *pred* probability, and divide the records into 10 different groups (deciles) 2. Calculate the actual and predicted rates in each decile 3. Plot the actual and predicted rates, together with the diagonal reference line.
+Thought the AUC makes sense to some technical people who know statistics well, it may not be sensible to the non-technical audience. In order to introduce the model performance in a way that is easier to understand, we may need the `perf.decile` function. This function takes the actual status (*actual*), and the predicted probability (*pred*) as inputs, and generate the performance figure in the following steps:
+
+1.  Rank the *pred* probability, and divide the records into 10 different groups (deciles)
+2.  Calculate the actual and predicted rates in each decile
+3.  Plot the actual and predicted rates, together with the diagonal reference line.
 
 If a model performs well, the predicted rates should match with the actual values well, which means the decile points should be around the reference line, and the good deciles should be far away from the bad deciles.
 
