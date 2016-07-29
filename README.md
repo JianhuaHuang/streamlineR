@@ -18,6 +18,7 @@
         -   [Plot with Default Arguments](#plot-with-default-arguments)
         -   [Constant Bar Width](#constant-bar-width)
         -   [Plot WOE](#plot-woe)
+        -   [Change Colors for Bar, Labels, and Background](#change-colors-for-bar-labels-and-background)
     -   [Replace Bins with WOE: `replace.woe`](#replace-bins-with-woe-replace.woe)
     -   [Correlation between Independent Variables: `corrplot.beautify`](#correlation-between-independent-variables-corrplot.beautify)
     -   [Logistic Model](#logistic-model)
@@ -346,9 +347,11 @@ In accompany with the `level.stat` function, is the visualization of its output 
 #### Plot with Default Arguments
 
 ``` r
-ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
-  y.label = 'Perc.1', y.title = NULL, width = 'Rate.group',
-  width.label = 'Perc.group', n.col = NULL)
+ggstat(data = stat.train, var = "Variable.IV", x = "Group", y = "Rate.1", 
+    y.label = "Perc.1", y.label.col = "red", y.title = NULL, 
+    bar.col = "cornflowerblue", width = "Rate.group", width.label = "Perc.group", 
+    width.label.col = "black", n.col = NULL, theme = "classic", 
+    background = "ivory")
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)
@@ -375,6 +378,25 @@ ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', width = .2,
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-16-1.png)
+
+#### Change Colors for Bar, Labels, and Background
+
+In order to make the plots look diverse, you can also change the colors for the bar, the labels for y and bar width, and the background. A lot of colors can be used in the plot. We can use the handy `display.col()` function to show the possible colors:
+
+``` r
+display.col()  # reference to http://sape.inf.usi.ch/quick-reference/ggplot2/colour 
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-17-1.png)
+
+You can pick your favorite colors for different elements in the `ggstat` function:
+
+``` r
+ggstat(stat.train, width = .2, y.label.col = 'white', bar.col = 'black',
+  width.label.col = 'blue', background = 'green')
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-18-1.png)
 
 Replace Bins with WOE: `replace.woe`
 ------------------------------------
@@ -425,13 +447,13 @@ cor.mat <- cor(dt.train[, col.x])
 corrplot(cor.mat)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-18-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-20-1.png)
 
 ``` r
 corrplot.beautify(cor.mat)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-18-2.png)
+![](README_files/figure-markdown_github/unnamed-chunk-20-2.png)
 
 Logistic Model
 --------------
@@ -594,7 +616,7 @@ In order to check the performance of AUC, the `perf.auc` function requires the m
 perf.auc(model = lg.aic, dt.train, dt.test)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-23-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-25-1.png)
 
 #### Check Performance Based on Decile Rate: `perf.decile`
 
@@ -611,7 +633,7 @@ pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
 perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-24-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-26-1.png)
 
     ## Source: local data frame [10 x 6]
     ## 
@@ -692,7 +714,7 @@ After calculating the *Pred.Rate.1*, we can again plot it using the ggstat funct
 ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-26-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-28-1.png)
 
 Reference
 ---------

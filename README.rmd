@@ -189,9 +189,11 @@ In accompany with the `level.stat` function, is the visualization of its output 
 
 #### Plot with Default Arguments
 ```{r}
-ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
-  y.label = 'Perc.1', y.title = NULL, width = 'Rate.group',
-  width.label = 'Perc.group', n.col = NULL)
+ggstat(data = stat.train, var = "Variable.IV", x = "Group", y = "Rate.1", 
+    y.label = "Perc.1", y.label.col = "red", y.title = NULL, 
+    bar.col = "cornflowerblue", width = "Rate.group", width.label = "Perc.group", 
+    width.label.col = "black", n.col = NULL, theme = "classic", 
+    background = "ivory")
 ```
 
 The `ggstat` function takes multiple arguments. All of the arguments have default values, except the first one (data). You only need to specify the data, which is usually the output from the `level.stat` function (It can also be other data, but the default arguments need to be changed.), to plot the *Rate.1* for different groups and variables.  
@@ -208,6 +210,18 @@ We can also plot other statistics (e.g., "WOE") by changing the *y* value to `y 
 ```{r,fig.height=3}
 ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', width = .2, 
   width.label = NULL, n.col = 4)
+```
+
+#### Change Colors for Bar, Labels, and Background
+In order to make the plots look diverse, you can also change the colors for the bar, the labels for y and bar width, and the background. A lot of colors can be used in the plot. We can use the handy `display.col()` function to show the possible colors:
+```{r,fig.width=8, fig.height=10}
+display.col()  # reference to http://sape.inf.usi.ch/quick-reference/ggplot2/colour 
+```
+
+You can pick your favorite colors for different elements in the `ggstat` function:
+```{r}
+ggstat(stat.train, width = .2, y.label.col = 'white', bar.col = 'black',
+  width.label.col = 'blue', background = 'green')
 ```
 
 

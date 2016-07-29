@@ -349,7 +349,7 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   y.label = 'Perc.1', y.label.col = 'red', y.title = NULL, 
   bar.col = 'cornflowerblue', width = 'Rate.group', width.label = 'Perc.group', 
   width.label.col = 'black', n.col = NULL, theme = 'classic', 
-  background = 'ivory') {
+  background = 'white') {
   
   # Plot the stat (statistics, e.g., Rate.1, Rate.0, and WOE) for each varaible
   # Args:
