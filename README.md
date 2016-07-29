@@ -185,7 +185,7 @@ bin.knn(status ~ platelet, data = dt.train, n.group = 5, min.bucket = 0.05)
 
 ![](README_files/figure-markdown_github/unnamed-chunk-6-1.png)
 
-Although the `bin.knn` function take into acount both the order and coefficient of each bucket, it may bin some buckets together if the coefficients for some neighboring buckets are very different. In this case, we may need to change the number of groups and/or buckets by adjusting the `n.group` and/or `min.bucket` argument. This can be done interactively using the manipulate function as follows:
+Although the `bin.knn` function take into account both the order and coefficient of each bucket, it may bin some buckets together if the coefficients for some neighboring buckets are very different. In this case, we may need to change the number of groups and/or buckets by adjusting the `n.group` and/or `min.bucket` argument. This can be done interactively using the manipulate function as follows:
 
 ``` r
 manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
@@ -304,12 +304,12 @@ head(dt.train)
     ## 5 45 < · <= 66      f 160 < · <= 240     4      1
     ## 6 45 < · <= 66      f 160 < · <= 240     2      0
 
-After replacing the numerical variables with bins, the numerical varialbes are converted to categorical variables automatically.
+After replacing the numerical variables with bins, the numerical variables are converted to categorical variables automatically.
 
 Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`
 -------------------------------------------------------------
 
-For all of the categorical varialbes, it is useful to calculate some statistics (e.g., population frequence, good/bad rates, and WOE) for different levels and variables, before building the models. The `level.stat` function is designed for this purpose. In order to use the `level.stat` function, the dependent variable (y) should be binary, and you should specify which value is flagged as 0/1 in the `level.stat` output.
+For all of the categorical variables, it is useful to calculate some statistics (e.g., population frequency, good/bad rates, and WOE) for different levels and variables, before building the models. The `level.stat` function is designed for this purpose. In order to use the `level.stat` function, the dependent variable (y) should be binary, and you should specify which value is flagged as 0/1 in the `level.stat` output.
 
 ``` r
 col.x <- c('age', 'gender', 'platelet', 'stage')
@@ -351,7 +351,7 @@ ggstat(data = stat.train, var = "Variable.IV", x = "Group", y = "Rate.1",
     y.label = "Perc.1", y.label.col = "red", y.title = NULL, 
     bar.col = "cornflowerblue", width = "Rate.group", width.label = "Perc.group", 
     width.label.col = "black", n.col = NULL, theme = "classic", 
-    background = "ivory")
+    background = "white")
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)
@@ -440,7 +440,7 @@ head(dt.train)
 Correlation between Independent Variables: `corrplot.beautify`
 --------------------------------------------------------------
 
-Another advantage of converting categorical values to WOE is that we can calculate the correlation between all independent variables, since they are all numeric values.In order to do this, we need to calculate the correlation matrix between the independent varialbes, and then visualize them using the `corrplot` or `corrplot.beautify` function.
+Another advantage of converting categorical values to WOE is that we can calculate the correlation between all independent variables, since they are all numeric values.In order to do this, we need to calculate the correlation matrix between the independent variables, and then visualize them using the `corrplot` or `corrplot.beautify` function.
 
 ``` r
 cor.mat <- cor(dt.train[, col.x])
@@ -494,7 +494,7 @@ summary(lg)
 
 #### Stepwise Variable Selection
 
-Then, we can select the significant variables with the `stepAIC` function from the `MASS` package. It is worth to mention that there is no argument that controls the p-to-enter directly in the function, since the variable seletion is based on AIC. Instead, we can adjust the *k* value to control the threshold for a variable to enter into the model. For discussion about the usage of *k* argument, please refer to this [thread](http://stats.stackexchange.com/questions/97257/stepwise-regression-in-r-critical-p-value)
+Then, we can select the significant variables with the `stepAIC` function from the `MASS` package. It is worth to mention that there is no argument that controls the p-to-enter directly in the function, since the variable selection is based on AIC. Instead, we can adjust the *k* value to control the threshold for a variable to enter into the model. For discussion about the usage of *k* argument, please refer to this [thread](http://stats.stackexchange.com/questions/97257/stepwise-regression-in-r-critical-p-value)
 
 ``` r
 lg.aic <- stepAIC(lg, k =  qchisq(0.05, 1, lower.tail=F))   # p to enter: 0.05
