@@ -343,10 +343,14 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
   return(rs)
 }
 
+
 ## ggplot the level.stat output by variable and level
 ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
-  y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Rate.group',
-  bar.width.label = 'Perc.group', n.col = NULL) {
+  y.label = 'Perc.1', y.label.col = 'red', y.title = NULL, 
+  bar.col = 'cornflowerblue', width = 'Rate.group', width.label = 'Perc.group', 
+  width.label.col = 'black', n.col = NULL, theme = 'classic', 
+  background = 'ivory') {
+  
   # Plot the stat (statistics, e.g., Rate.1, Rate.0, and WOE) for each varaible
   # Args:
   #    data: the input dataset
@@ -356,9 +360,9 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   #    y.label: the text used to label the y value
   #    y.min.0: whether to plot the bar from 0
   #    y.title: the title for y axis
-  #    bar.width: the column used to represent bar width. If NULL, the bar width
+  #    width: the column used to represent bar width. If NULL, the bar width
   #               is set to 0.1
-  #    bar.width.label: the column used to label the bar.width. If NULL, it is
+  #    width.label: the column used to label the width. If NULL, it is
   #                     not labelled.
   #    n.col: number of panel column
   # Return: ggplot
@@ -373,43 +377,58 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
     data$y.label = data[, y.label]
   }
   
-  if(is.null(bar.width)) {
-    data$bar.width = 0
+  if(is.numeric(width)) {
+    data$width = width
   } else {
-    data$bar.width = data[, bar.width]
+    data$width = data[, width]
   }
   
-  if(is.null(bar.width.label)) {
-    data$bar.width.label = ''
+  if(is.null(width.label)) {
+    data$width.label = ''
   } else {
-    data$bar.width.label = data[, bar.width.label]
+    data$width.label = data[, width.label]
   }
   
   if(is.null(n.col)) n.col <- ceiling(sqrt(length(unique(data$var))))
   
-  y.range <- max(data$y) - ifelse(y.min.0 == TRUE, 0, min(data$y))
-  y.min <- ifelse(y.min.0 == TRUE, 0, min(data$y) - y.range * .15)
-  y.max <- (max(data$y)) + y.range * .1
+  y.range <- max(data$y) -  min(data$y)
+  y.min <- min(data$y) - y.range * .15
+  y.max <- max(data$y) + y.range * .15
   
-  ggplot(data, aes(x = x, y = y)) +
+  p <- ggplot(data, aes(x = x, y = y)) +
     facet_wrap(~ var, scale = 'free', ncol = n.col) +
-    geom_bar(aes(width = bar.width + .1), stat = 'identity',
-      fill = 'cornflowerblue', color = 'cornflowerblue') +
-    # geom_text(aes(y = y, label = y.label), size = 3, color = 'red',
-    #   vjust = ifelse(data$y > 0, -.25, .85)) +
-    geom_text(aes(y = y, label = y.label), size = 3, color = 'red',
+    geom_bar(aes(width = width + .1), stat = 'identity',
+      fill = bar.col, color = bar.col) +
+    geom_text(aes(y = y, label = y.label), size = 3, color = y.label.col,
       nudge_y = ifelse(data$y > 0, .06, -.06) * y.range) +
-    geom_text(aes(y = y.min, label = bar.width.label), size = 3, vjust = 0) +
+    geom_text(aes(y = y.min, label = width.label), size = 3, 
+      color = width.label.col) +
     labs(x = NULL, y = y.title) +
-    scale_y_continuous(limits = c(y.min, y.max), oob = rescale_none) +
-    theme_classic() +
-    theme(axis.text.x = element_text(angle=25, hjust=1),
-      axis.line.x = element_line(), axis.line.y = element_line(),
-      axis.title = element_text(size=12,face="bold"),
-      text = element_text(size = 10), strip.text = element_text(face = 'bold'),
-      strip.background = element_blank())
-}
-# ggstat(lvs, y = 'Rate.1', y.label = 'Perc.1', bar.width = NULL)
+    scale_y_continuous(limits = c(y.min, y.max), oob = rescale_none)
+  
+  if(theme == 'classic') {
+    p <- p + theme_classic() +
+      theme(axis.text.x = element_text(angle=25, hjust=1),
+        rect = element_rect(fill = background, linetype = 0, color = NA),
+        panel.background = element_rect(fill = background),
+        axis.line.x = element_line(), axis.line.y = element_line(),
+        axis.title = element_text(size=12,face="bold"),
+        text = element_text(size = 10), strip.text = element_text(face = 'bold'),
+        strip.background = element_blank())}
+  
+  if(theme == 'ws') {
+    p <- p + theme_ws(background = background) + 
+      theme(axis.text.x = element_text(angle=25, hjust=1),
+        axis.title = element_text(size=12,face="bold"),
+        text = element_text(size = 10), strip.text = element_text(face = 'bold'),
+        strip.background = element_blank())}
+  
+  p
+} 
+
+# ggstat(stat.train, y = 'WOE', bar.col = 'cornflowerblue', background = 'ivory', 
+#   y.label.col = 'red', width.label.col = 'black', theme = 'classic')
+# ggstat(lvs, y = 'Rate.1', y.label = 'Perc.1', width = NULL)
 # ggstat(lvs, y = 'WOE', y.label = NULL)
 # ggstat(level.stat.prog, y.title = 'Progression Rate (%)')
 
