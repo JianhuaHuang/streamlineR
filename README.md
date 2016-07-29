@@ -347,8 +347,8 @@ In accompany with the `level.stat` function, is the visualization of its output 
 
 ``` r
 ggstat(data = stat.train, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
-  y.label = 'Perc.1', y.min.0 = FALSE, y.title = NULL, bar.width = 'Rate.group',
-  bar.width.label = 'Perc.group', n.col = NULL)
+  y.label = 'Perc.1', y.title = NULL, width = 'Rate.group',
+  width.label = 'Perc.group', n.col = NULL)
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)
@@ -357,10 +357,10 @@ The `ggstat` function takes multiple arguments. All of the arguments have defaul
 
 #### Constant Bar Width
 
-The default arguments can be changed to other values to make the plot looks different. For example, if we don't want to use width of the bar to represent the ratio of population in each group, we can set `bar.width = NULL`, so that the same width is used for each bar.
+The default arguments can be changed to other values to make the plot looks different. For example, if we don't want to use width of the bar to represent the ratio of population in each group, we can set `width = XX` (where XX is a numerical value), so that the same width is used for each bar.
 
 ``` r
-ggstat(stat.train, bar.width = NULL)
+ggstat(stat.train, width = .2)
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-15-1.png)
@@ -370,8 +370,8 @@ ggstat(stat.train, bar.width = NULL)
 We can also plot other statistics (e.g., "WOE") by changing the *y* value to `y = 'WOE'`, and and *y.label* to `y.label = 'WOE.round'`. We can also set the number of columns for the plot by changing the *n.col* argument.
 
 ``` r
-ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', bar.width = NULL, 
-  bar.width.label = NULL, n.col = 4)
+ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', width = .2, 
+  width.label = NULL, n.col = 4)
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-16-1.png)
@@ -616,7 +616,7 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
     ## Source: local data frame [10 x 6]
     ## 
     ##    Decile Actual.rate Predict.rate Freq.1 Freq.0 Freq.group
-    ##     (int)       (dbl)        (dbl)  (dbl)  (dbl)      (int)
+    ##     <int>       <dbl>        <dbl>  <dbl>  <dbl>      <int>
     ## 1       1    6.666667     10.11034     20    280        300
     ## 2       2   33.333333     25.05685    100    200        300
     ## 3       3   17.666667     30.32782     53    247        300

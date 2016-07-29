@@ -425,7 +425,6 @@ ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   
   p
 } 
-
 # ggstat(stat.train, y = 'WOE', bar.col = 'cornflowerblue', background = 'ivory', 
 #   y.label.col = 'red', width.label.col = 'black', theme = 'classic')
 # ggstat(lvs, y = 'Rate.1', y.label = 'Perc.1', width = NULL)
