@@ -15,9 +15,9 @@
 #' @param add.legend Whether to add the legend for color (TRUE/FALSE)
 #' @return A ggplot of the correlation matrix
 #' @examples
-#' aa <- matrix(runif(100), 10)
-#' colnames(aa) <- paste0('Variable ', 1:ncol(aa))
-#' cor.mat <- cor(aa)
+#' xx <- matrix(runif(100), 10)
+#' colnames(xx) <- paste0('Variable ', 1:ncol(xx))
+#' cor.mat <- cor(xx)
 #' 
 #' ggcorr(cor.mat)  # default plot
 #' ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
@@ -78,10 +78,9 @@ ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red',
   
   suppressWarnings(print(p))
 }
-
-# aa <- matrix(runif(100), 10)
-# colnames(aa) <- paste0('Variable ', 1:ncol(aa))
-# cor.mat <- cor(aa)
+# xx <- matrix(runif(100), 10)
+# colnames(xx) <- paste0('Variable ', 1:ncol(xx))
+# cor.mat <- cor(xx)
 # 
 # ggcorr(cor.mat)
 # ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',

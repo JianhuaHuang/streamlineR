@@ -70,6 +70,219 @@ ifelse.safe <- function(cond, yes, no) {
 }
 
 ############################## Binning and WOE #################################
+bin.custom <- function(x, cut.p, names = NULL,
+  name.style = c('report', 'scientific'), ...) {
+  # This function is used to bin the data with given cut points
+  # Args:
+  #    x: a single column of data to be cut
+  #    cut.p: the given cut points.
+  #    names: the names given to the bins after cutting. If no names is
+  #               given, the default name.style is used
+  #    name.style: the naming style used, can be either
+  #                'scientific' (e.g., (1, 2]) or 'report' (e.g., 1 < · <= 2)
+  # Return:
+  #    A vector of binned values
+  
+  x.num <- as.numeric(x)
+  cut.p.num <- as.numeric(cut.p)
+  
+  # add ends to the cut.p
+  cut.p_ends <- c(-Inf, cut.p.num, max(x.num, na.rm = T))
+  x.bins <- cut(x.num, cut.p_ends, include.lowest = T)
+  
+  # change the levels from -Inf to the actual minimum value
+  if(is.null(names)) {
+    
+    name.style = name.style[1]
+    
+    if(name.style == 'scientific') {
+      levels(x.bins) <- gsub(paste0('[-Inf,', cut.p[1], ']'),
+        paste0('[', min(x, na.rm = T), ',', cut.p[1], ']'),
+        levels(x.bins), fixed = T)
+    }
+    
+    if(name.style == 'report') {
+      bin.names <- c(paste('<=', cut.p[1]), rep(NA, length(cut.p) - 1),
+        paste('>', cut.p[length(cut.p)]))
+      
+      if(length(cut.p) > 1) {
+        for (i in 2:length(cut.p)) {
+          bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
+        }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
+      levels(x.bins) <- bin.names
+    }
+  }
+  # if there is only one unique value in the level, change the x.bins to
+  # that value
+  x.bin.unique <- data.frame(x, x.bins) %>%
+    filter(!is.na(x)) %>%
+    group_by(x.bins) %>%
+    summarise(unique.x = length(unique(x)), min.x = min(x))
+  
+  levels(x.bins) <- ifelse(x.bin.unique$unique.x == 1, x.bin.unique$min.x,
+    levels(x.bins))
+  
+  if(!is.null(names)) levels(x.bins) <- names # coerce to change levels
+  
+  # preserve the levels order
+  lvs <- levels(x.bins)
+  x.bins <- as.character(x.bins)
+  x.bins[is.na(x.bins)] <- 'Missing'
+  x.bins <- factor(x.bins, levels = c(lvs, 'Missing'))
+  x.bins <- droplevels(x.bins)
+  return(x.bins)
+}
+# df <- data.frame(x = 1:100, y = sample(c(1, 0), 100, replace = T))
+# df <- data.frame(x = 1:100, y = rep(c(1, 0), each = 50))
+# bin.custom(x = c(1:50, NA, NA, 51:100), cut.p = c(1, 2, 99), name.style = 'report')
+# rs <- bin.custom(dt$Grad_Year_Month, as.yearmon(c('Aug 2012', 'Aug 2013')))
+
+## bin.knn
+bin.knn <- function(formula, data, n.group, min.bucket) {
+  # Visualize the binning for survival/logistic model based on model coefficients
+  # Can be combined with the manipulate function to check the binning of 
+  # coefficients interactively
+  # Args:
+  #    formula: the model used for binning (can be glm or coxph)
+  #    data: the data frame used for binning
+  #    n.group: number of binned groups
+  #    min.bucket: the minimum ratio of population in each group (can be 
+  #             a value between 0 to 1)
+  # Return:
+  #    Shows a ggplot with the regression coefficients and the binned groups
+  
+  x <- as.character(formula[3])
+  y <- as.character(formula[2])
+  
+  # This function is used to explore the clustering of bins based on KNN method
+  cut.q <- unique(quantile(data[, x], seq(0, 1, length.out = 1 / min.bucket),
+    na.rm = T))
+  data[, x] <- cut(data[, x], cut.q, include.lowest = TRUE)
+  data[, x] <- droplevels(data[, x])
+  data[, x] <- addNA(data[, x], ifany = T)
+  
+  # If y is a survival object, coxph is used to estimate the coefficients
+  # Otherwise (y is a binary vector), the logistic model is used
+  if(grepl('^Surv', y)) {
+    mod <- coxph(formula, data = data)
+  } else {
+    mod <- glm(formula, data = data, family=binomial(link='logit'))
+  }
+  
+  # construct the coef and population dataframe
+  x.pop <- data.frame(Variable = x, data.frame(table(data[, x])))
+  colnames(x.pop) <- c('Variable', 'Bin', 'Freq')
+  
+  coef <- data.frame(Variable = x,
+    Bin = gsub(x, '', names(mod$coefficients)),
+    Coef = mod$coefficients)
+  
+  coef.pop <- merge(x.pop, coef, all.x = T)
+  coef.pop$Coef[1] <- 0  # the first value is the reference, its coef is zero
+  
+  # knn groups based on the order and coefficients
+  x.knn <- data.frame(Ord = 1:nrow(coef.pop), Coef = coef.pop$Coef)
+  
+  coef.pop$KNN_Group <- as.factor(
+    kmeans(scale(x.knn), n.group, nstart = 20)$cluster)
+  
+  ggplot(coef.pop, aes(x = Bin, y = Coef, fill = KNN_Group,
+    color = KNN_Group, width = 3 * Freq / nrow(data))) +
+    geom_bar(stat = 'identity') +
+    labs(x = 'Buckets', y = 'Model Coefficients',
+      title = paste(x, ':', nrow(coef.pop), 'buckets clustered into',
+        n.group, 'groups')) +
+    theme_bw() +
+    scale_fill_discrete(name = 'KNN Group') +
+    scale_color_discrete(name = 'KNN Group') +
+    theme(axis.text.x = element_text(angle=30, hjust=1))
+}
+# manipulate(bin.knn(status ~ platelet, data = dt.train, n.group, min.bucket),
+#   n.group = slider(1, 10, step = 1, initial = 5, label = 'Number of groups'),
+#   min.bucket = slider(0.01, 1, step = 0.01, initial = 0.05,
+#     label = 'Minimum Population Size (%)'))
+
+## rpart.bin
+bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL, ...) {
+  # This function is used to bin the numerical variable for survival model
+  # Arg:
+  #    formula: the formula used for rpart
+  #    data: the dataset used for rpart
+  #    n.group: the acceptable number of groups (NA group not counted for)
+  #    rcontrol: the control used for rpart
+  
+  # The NA values are removed by the rpart function automatically
+  row.names(data) <- 1:nrow(data)
+  
+  vars <- all.vars(formula)
+  x.num <- vars[length(vars)]
+  
+  # if the minbucket is the default value 7, then update it to 1% of the data
+  # if(rcontrol$minbucket == 7) {
+  #   rcontrol$minbucket <- .01 * nrow(data)
+  # }
+  
+  rp.tree <- rpart(formula, data, control = rcontrol, ...)
+  # rp.tree <- rpart(formula, data, control = rcontrol)
+  
+  ## if n.group is NULL, and no group is found, return 'No Bin'
+  if(is.null(n.group) & length(unique(rp.tree$where)) == 1) {
+    cat(c(x.num, ': No Bin \n'))
+    return('No Bin')
+  }
+  
+  ## if n.group is not NULL, change cp to find the possible bins within n.group
+  while((!is.null(n.group)) & (!length(unique(rp.tree$where)) %in% n.group)) {
+    multipler <- ifelse(length(unique(rp.tree$where)) > median(n.group), 1.1, .9)
+    rcontrol$cp <- rcontrol$cp * multipler
+    rp.tree <- rpart(formula, data, control = rcontrol, ...)
+    # rp.tree <- rpart(formula, data, control = rcontrol)
+  }
+  
+  tree.where <- data.frame(Where = rp.tree$where)
+  
+  tree.value <- data.frame(Value = data[, x.num], Where = 'Missing',
+    stringsAsFactors = F)
+  tree.value[row.names(tree.where), 'Where'] <- tree.where$Where
+  
+  tree.cut <- group_by(tree.value, Where) %>%
+    summarise(Cut_Start = min(Value), Cut_End = max(Value)) %>%
+    arrange(Cut_End)
+  
+  if(is.na(tree.cut$Cut_End[nrow(tree.cut)])) {
+    cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 2)]
+  } else {
+    cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 1)]
+  }
+  
+  cat(c(x.num, ':', cut.p, '\n'))
+  
+  bin.names <- c(paste('<=', cut.p[1]), rep(NA, length(cut.p) - 1),
+    paste('>', cut.p[length(cut.p)]))
+  
+  if(length(cut.p) > 1) {
+    for (i in 2:length(cut.p)) {
+      bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
+    }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
+  
+  # check whether the Cut_Start and Cut_End are the same
+  # if the same, the <, =, or > signs is not needed
+  bin.names <- ifelse(tree.cut$Cut_Start[1:length(bin.names)] ==
+      tree.cut$Cut_End[1:length(bin.names)], tree.cut$Cut_End, bin.names)
+  
+  tree.cut$Bin <- 'Missing'
+  tree.cut$Bin[1:length(bin.names)] <- bin.names
+  
+  x.bins <- factor(tree.cut$Bin[match(tree.value$Where, tree.cut$Where)],
+    levels = tree.cut$Bin)
+  
+  return(list(cut.points = cut.p, bins = x.bins))
+}
+# dt <- read.csv('C:/Projects/AlumniConvProg/data/Data_Associate.csv')
+# bin.rpart(formula = Surv(Conversion_Time_Months, Conversion_Status) ~ WF_Count,
+#   rcontrol = rpart.control(cp = 0.0001, minbucket = nrow(dt.conv) * .01),
+#   data = dt.conv, n.group = 3:7)
+
 ## Rates by level
 level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
   # Used to calculate the rates, WOE, and IV for different variables
