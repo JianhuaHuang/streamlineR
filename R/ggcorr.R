@@ -1,11 +1,8 @@
-test <- dt.train[, col.x]
-cor.mat <- cor(test)
-
-ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, color.high = 'red', 
-  color.low = 'blue', digit = 2, var.position = c('axis', 'diagonal'), 
+ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red', 
+  low = 'blue', digit = 2, var.position = c('axis', 'diagonal'), 
   var.angle = 30, add.legend = TRUE) {
   
-  var.position <- var.position[1]
+  var.position <- match.arg(var.position)
   
   if(lower == 'TRUE') {
     cor.mat[lower.tri(cor.mat)] <- NA
@@ -28,7 +25,7 @@ ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, color.high = 'red',
     geom_point(data = cor.df0, aes(fill = corr, size = abs(corr) * 10 * psize), 
       color = 'white', pch = 21, alpha = .5, show.legend = F) + 
     scale_size_identity() +
-    scale_fill_gradient2(name = NULL, high = color.high, low = color.low, 
+    scale_fill_gradient2(name = NULL, high = high, low = low, 
       limits = c(-1, 1), guide = FALSE) + 
     geom_text(aes(label = round(corr, digit))) +
     labs(x = NULL, y = NULL) + 
@@ -56,12 +53,12 @@ ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, color.high = 'red',
   suppressWarnings(print(p))
 }
 
+aa <- matrix(runif(100), 10)
+colnames(aa) <- paste0('Variable ', 1:ncol(aa))
+cor.mat <- cor(aa)
 
-# aa <- matrix(runif(100), 10)
-# colnames(aa) <- paste0('Variable ', 1:ncol(aa))
-# cor.mat <- cor(aa)
-# ggcorr(cor(aa), lower = FALSE, color.high = 'blue', color.low = 'green', var.angle = 20,
-#   add.legend = F)
+ggcorr(cor.mat)
+ggcorr(cor.mat, var.position = 'diagonals', high = 'blue', low = 'green',
+  add.legend = FALSE)
+ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
 
-ggcorr(cor.mat, lower = FALSE, var.position = 'diagonal', color.high = 'blue', 
-  color.low = 'green')
