@@ -20,7 +20,9 @@
         -   [Plot WOE](#plot-woe)
         -   [Change Colors for Bar, Labels, and Background](#change-colors-for-bar-labels-and-background)
     -   [Replace Bins with WOE: `replace.woe`](#replace-bins-with-woe-replace.woe)
-    -   [Correlation between Independent Variables: `corrplot.beautify`](#correlation-between-independent-variables-corrplot.beautify)
+    -   [Correlation between Independent Variables: `ggcorr`](#correlation-between-independent-variables-ggcorr)
+        -   [Plot with the base system: `corrplot`](#plot-with-the-base-system-corrplot)
+        -   [Plot with the ggplot system: `ggcorr`](#plot-with-the-ggplot-system-ggcorr)
     -   [Logistic Model](#logistic-model)
         -   [Stepwise Variable Selection](#stepwise-variable-selection)
     -   [Prepare Test Data: `bin.custom & replace.woe`](#prepare-test-data-bin.custom-replace.woe)
@@ -437,10 +439,12 @@ head(dt.train)
     ## 5  0.0815172 -0.06899025  0.01728312  0.8426449      1
     ## 6  0.0815172 -0.06899025  0.01728312 -0.5844896      0
 
-Correlation between Independent Variables: `corrplot.beautify`
---------------------------------------------------------------
+Correlation between Independent Variables: `ggcorr`
+---------------------------------------------------
 
-Another advantage of converting categorical values to WOE is that we can calculate the correlation between all independent variables, since they are all numeric values.In order to do this, we need to calculate the correlation matrix between the independent variables, and then visualize them using the `corrplot` or `corrplot.beautify` function.
+#### Plot with the base system: `corrplot`
+
+Another advantage of converting categorical values to WOE is that we can calculate the correlation between all independent variables, since they are all numeric values.In order to do this, we need to calculate the correlation matrix between the independent variables, and then visualize them using `ggcorr`. The idea of `ggcorr` originates from the `corrplot` function in the `corrplot` package. The `corrplot` function is based on the base R plot system, while the `ggcorr` function is based on the ggplot system. With the default setting, you can generate the `corrplot` as follows:
 
 ``` r
 cor.mat <- cor(dt.train[, col.x])
@@ -449,11 +453,58 @@ corrplot(cor.mat)
 
 ![](README_files/figure-markdown_github/unnamed-chunk-20-1.png)
 
+#### Plot with the ggplot system: `ggcorr`
+
+The `ggcorr` function is a simplified version of the `corrplot`, which only include a few arguments that may be useful to most users. Compared to the `corrplot` function, the diagonal big dots are removed, because we don't want to highlight those values. Since the plot is based on the ggplot system, the figure can be saved with the `ggsave` function directly. By default, the `ggcorr` generate a figure looks like this:
+
 ``` r
-corrplot.beautify(cor.mat)
+ggcorr(cor.mat)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-20-2.png)
+![](README_files/figure-markdown_github/unnamed-chunk-21-1.png)
+
+You can change a few options in the function to personalize the plot:
+
+-   lower: whether you only want the lower triangle
+-   psize: the point size for the correlation
+-   high: the color represents the high (positive) correlation
+-   low: the color represents the low (negative) correlation
+-   digit: the number of digits for the correlation values
+-   var.position: the position to put the variable names (*axis*, *diagonal*)
+-   var.angle: set the angle for the variables, to avoid overlap of the text
+-   add.legend: whether to add the legend for color (TRUE/FALSE)
+
+Using the following randomly-generated data as an example, you can get different plots by changing a few arguments:
+
+``` r
+set.seed(1111)
+data.random <- matrix(runif(100), 10)
+colnames(data.random) <- paste('Variable', 1:10)
+cor.random <- cor(data.random)
+
+ggcorr(cor.random)  # default output
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-22-1.png)
+
+``` r
+ggcorr(cor.random, var.position = 'diagonal', add.legend = FALSE)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-22-2.png)
+
+``` r
+ggcorr(cor.random, lower = TRUE)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-22-3.png)
+
+``` r
+ggcorr(cor.random, lower = TRUE, var.position = 'diagonal', high = 'blue', 
+  low = 'green')
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-22-4.png)
 
 Logistic Model
 --------------
@@ -616,7 +667,7 @@ In order to check the performance of AUC, the `perf.auc` function requires the m
 perf.auc(model = lg.aic, dt.train, dt.test)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-25-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-27-1.png)
 
 #### Check Performance Based on Decile Rate: `perf.decile`
 
@@ -633,7 +684,7 @@ pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
 perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-26-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-28-1.png)
 
     ## Source: local data frame [10 x 6]
     ## 
@@ -714,7 +765,7 @@ After calculating the *Pred.Rate.1*, we can again plot it using the ggstat funct
 ggstat(pred.stat, y = 'Pred.Rate.1')
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-28-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-30-1.png)
 
 Reference
 ---------
