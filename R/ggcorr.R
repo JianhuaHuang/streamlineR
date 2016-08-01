@@ -53,12 +53,12 @@ ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red',
   suppressWarnings(print(p))
 }
 
-aa <- matrix(runif(100), 10)
-colnames(aa) <- paste0('Variable ', 1:ncol(aa))
-cor.mat <- cor(aa)
-
-ggcorr(cor.mat)
-ggcorr(cor.mat, var.position = 'diagonals', high = 'blue', low = 'green',
-  add.legend = FALSE)
-ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
+# aa <- matrix(runif(100), 10)
+# colnames(aa) <- paste0('Variable ', 1:ncol(aa))
+# cor.mat <- cor(aa)
+# 
+# ggcorr(cor.mat)
+# ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
+#   add.legend = FALSE)
+# ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
 
