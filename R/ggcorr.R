@@ -1,5 +1,31 @@
+#' Generate the ggplot for a correlation matrix
+#' 
+#' @param cor.mat A correlation matrix, usually generated with cor() function
+#' @param lower Whether to plot the lower triangle only
+#' @param psize The poit size for the dots
+#' @param high The color represents the high (positive) correlation
+#' @param low The color represents the low (negative) correlation
+#' @param digits The number of digits shown for the correlation values
+#' @param var.position The position to put the variable names. 
+#'    If the value is "axis", the variable names will be at the x and y axis. 
+#'    If the value is "diagonal", the variable names will be put along the diagonal
+#'    line. 
+#' @param var.angle The angle of the text for the variable names on the X axis or
+#'    The diagonal line. 
+#' @param add.legend Whether to add the legend for color (TRUE/FALSE)
+#' @return A ggplot of the correlation matrix
+#' @examples
+#' aa <- matrix(runif(100), 10)
+#' colnames(aa) <- paste0('Variable ', 1:ncol(aa))
+#' cor.mat <- cor(aa)
+#' 
+#' ggcorr(cor.mat)  # default plot
+#' ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
+#'   add.legend = FALSE)
+#' ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
+
 ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red', 
-  low = 'blue', digit = 2, var.position = c('axis', 'diagonal'), 
+  low = 'blue', digits = 2, var.position = c('axis', 'diagonal'), 
   var.angle = 30, add.legend = TRUE) {
   
   var.position <- match.arg(var.position)
@@ -27,7 +53,7 @@ ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red',
     scale_size_identity() +
     scale_fill_gradient2(name = NULL, high = high, low = low, 
       limits = c(-1, 1), guide = FALSE) + 
-    geom_text(aes(label = round(corr, digit))) +
+    geom_text(aes(label = round(corr, digits))) +
     labs(x = NULL, y = NULL) + 
     coord_equal() + 
     theme_bw() +
@@ -53,12 +79,12 @@ ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red',
   suppressWarnings(print(p))
 }
 
-aa <- matrix(runif(100), 10)
-colnames(aa) <- paste0('Variable ', 1:ncol(aa))
-cor.mat <- cor(aa)
-
-ggcorr(cor.mat)
-ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
-  add.legend = FALSE)
-ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
+# aa <- matrix(runif(100), 10)
+# colnames(aa) <- paste0('Variable ', 1:ncol(aa))
+# cor.mat <- cor(aa)
+# 
+# ggcorr(cor.mat)
+# ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
+#   add.legend = FALSE)
+# ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
 

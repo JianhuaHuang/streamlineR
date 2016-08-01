@@ -3,7 +3,7 @@ Type: Package
 Title: Streamline Routine Modeling Work
 Version: 0.1.0
 Author: Jianhua Huang
-Maintainer: Jianhua Huang <jh.eco.cas@gmail.com>
+Maintainer: Jianhua Huang <jianhua.huangsdu@gmail.com>
 Depends:
     corrplot,
     dplyr,
@@ -14,14 +14,15 @@ Depends:
     rpart,
     reshape2,
     survival
-Description: This package is designed to streamline the modeling work, especially
-    for scoring. It provides some handy function to bin numerical variables,
-    replace numerical variables with Weight of Evidence (WOE), ranking varialbes
-    by Information Values (IV), plotting the successful/failure rates, check model
-    performance based on AUC.This package also provides the useful function to
-    convert the model output (e.g., coefficients) to graph/tables that are easier
-    to understand for non-technical audience.
-License: What license is it under?
-LazyData: GPL
+Description: This package is designed to streamline the modeling work,
+    especially for scoring. It provides some handy function to bin numerical
+    variables, replace numerical variables with Weight of Evidence (WOE), ranking
+    varialbes by Information Values (IV), plotting the successful/failure rates,
+    check model performance based on AUC.This package also provides the useful
+    function to convert the model output (e.g., coefficients) to graph/tables that
+    are easier to understand for non-technical audience.
+License: MIT + file LICENSE
+LazyData: yes
 URL: http://github.com/JianhuaHuang/streamlineR
 BugReports: http://github.com/JianhuaHuang/streamlineR/issues
+RoxygenNote: 5.0.1
