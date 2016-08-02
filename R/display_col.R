@@ -7,6 +7,7 @@
 #'    
 #' @examples
 #' display.col()
+#' @export
 
 display.col <- function() {
   # Display all possible colors in ggplot2

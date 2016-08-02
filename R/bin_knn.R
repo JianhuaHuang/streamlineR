@@ -24,6 +24,7 @@
 #'   n.group = slider(1, 10, step = 1, initial = 5, label = 'Number of groups'),
 #'   min.bucket = slider(0.01, 1, step = 0.01, initial = 0.05,
 #'   label = 'Minimum Population Size (%)'))
+#' @export
 
 bin.knn <- function(formula, data, n.group = 5, min.bucket = .05) {
   

@@ -16,7 +16,8 @@
 #' data <- rpart::stagec
 #' st <- level.stat(data, x = c('eet', 'ploidy'), y = 'pgstat')
 #' replace.woe(data, stat = st)
- 
+#' @export
+
 replace.woe <- function(data, stat, replace = FALSE) {
   # This function is used to replace the categorical variables with the
   # corresponding woe value claculated with level.stat function

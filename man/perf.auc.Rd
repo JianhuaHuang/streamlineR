@@ -33,5 +33,6 @@ dt.train <- data[ind.train, ]
 dt.test <- data[-ind.train, ]
 mod <- glm(pgstat ~ ., dt.train, family=binomial(link='logit'))
 perf.auc(mod, dt.train, dt.test)
+
 }
 

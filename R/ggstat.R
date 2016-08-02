@@ -30,6 +30,7 @@
 #' data <- rpart::stagec
 #' st <- level.stat(data, x = c('eet', 'ploidy'), y = 'pgstat')
 #' ggstat(st, theme = 'ws')
+#' @export
 
 ggstat <- function(data, var = 'Variable.IV', x = 'Group', y = 'Rate.1',
   y.label = 'Perc.1', y.label.col = 'red', y.title = NULL, 

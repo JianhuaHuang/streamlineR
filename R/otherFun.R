@@ -1,6 +1,7 @@
 #   Build and Reload Package:  'Ctrl + Shift + B'
 #   Check Package:             'Ctrl + Shift + E'
 #   Test Package:              'Ctrl + Shift + T'
+#' @export
 
 ############################# little functions #################################
 ## add.row
@@ -37,6 +38,7 @@ add.row <- function(df, new.row) {
 # add.row(df = df, new.row = new.row)
 
 ## paste.mat
+#' @export
 # paste elements to a matrix, and return a matrix with the same dims
 paste.mat <- function(x, ...) {
   # This function is used to paste matrix/data.frame, and return a matrix with
@@ -60,6 +62,7 @@ paste.mat <- function(x, ...) {
 # paste.mat(df, '_', 11:19)
 
 # ifelse prevent data type change
+#' @export
 ifelse.safe <- function(cond, yes, no) {
   # The ifelse function may change the returned data format (e.g., date -> num)
   # this simple function can prevent the change
@@ -70,6 +73,7 @@ ifelse.safe <- function(cond, yes, no) {
 }
 
 ## KM curve
+#' @export
 km.curve <- function(data, time, status, x, plot = TRUE) {
   dt.km.obo <- lapply(x, function(xx) {
     sf.x <- survfit(as.formula(paste0('Surv(', time, ',', status, ') ~', xx)),
@@ -97,6 +101,7 @@ km.curve <- function(data, time, status, x, plot = TRUE) {
 #   status = 'Conversion_Status', x = col.x[1:6], plot = TRUE)
 
 ## calculate the survival probability at each time for each record one by one
+#' @export
 survexp.obo <- function(data, ratetable, ...) {
   # calculate the survival table for each record one by one
   # Args:
@@ -119,6 +124,7 @@ survexp.obo <- function(data, ratetable, ...) {
 
 
 ## beatufied correlation plot
+#' @export
 corrplot.beautify <- function(cor.mat) {
   # The layout and fonts of the default corrplot output doesn't look good
   # this function is used to beautify the corrplot

@@ -7,6 +7,7 @@
 #'    
 #' @examples
 #' display.pch()
+#' @export
 
 display.pch <- function() {
   # Display all possible pch (point shape) used for ggplot

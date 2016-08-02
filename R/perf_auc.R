@@ -21,6 +21,8 @@
 #' dt.test <- data[-ind.train, ]
 #' mod <- glm(pgstat ~ ., dt.train, family=binomial(link='logit'))
 #' perf.auc(mod, dt.train, dt.test)
+#' 
+#' @export
 
 perf.auc <- function(model, train, test) {
   # check the coxph or logistic (glm) model performance based on AUC

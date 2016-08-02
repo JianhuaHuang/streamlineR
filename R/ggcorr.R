@@ -23,6 +23,8 @@
 #' ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
 #'   add.legend = FALSE)
 #' ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
+#' 
+#' @export
 
 ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red', 
   low = 'blue', digits = 2, var.position = c('axis', 'diagonal'), 

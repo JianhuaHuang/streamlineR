@@ -12,6 +12,7 @@
 #' @return Bins the original values fall within
 #' @examples
 #' bin.custom(1:100, cut.p = c(20, 50, 80))
+#' @export
 
 bin.custom <- function(x, cut.p, names = NULL,
   name.style = c('report', 'scientific')) {

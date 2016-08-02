@@ -10,6 +10,7 @@
 #' ggplot(mtcars, aes(x = mpg, y = disp, color = as.factor(cyl))) + 
 #'   geom_point() + 
 #'   theme_ws()
+#' @export
 
 theme_ws <- function(background = 'ivory', ...) {
   theme_bw() +

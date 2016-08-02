@@ -17,6 +17,7 @@
 #' @examples
 #' data <- rpart::stagec
 #' level.stat(data, x = c('eet', 'ploidy'), y = 'pgstat')
+#' @export
 
 level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
   # Used to calculate the rates, WOE, and IV for different variables

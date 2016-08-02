@@ -46,5 +46,6 @@ ggcorr(cor.mat)  # default plot
 ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
   add.legend = FALSE)
 ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
+
 }
 

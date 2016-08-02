@@ -23,6 +23,7 @@
 #' 
 #' pred.test <- predict(mod, newdata = dt.test, type = 'response')
 #' perf.decile(actual = dt.test$pgstat, pred = pred.test)
+#' @export
 
 perf.decile <- function(actual, pred, plot = TRUE, add.legend = TRUE) {
   # check the model performance based on actual and predicted rates

@@ -39,6 +39,7 @@
 #' mod <- glm(pgstat ~ eet + grade + ploidy, data, family=binomial(link='logit'))
 #' st <- level.stat(data, y = 'pgstat')
 #' coef2rate(mod, data, st)
+#' @export
 
 coef2rate <- function(model, data, stat, force.change = TRUE,
   time = NULL) {

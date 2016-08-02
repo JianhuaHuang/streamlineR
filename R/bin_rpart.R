@@ -23,6 +23,7 @@
 #' @examples
 #' data <- rpart::stagec
 #' bin.rpart(pgstat ~ age, data = data)
+#' @export
 
 bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL, 
   ...) {
