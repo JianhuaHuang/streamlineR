@@ -352,7 +352,7 @@ In accompany with the `level.stat` function, is the visualization of its output 
 ggstat(data = stat.train, var = "Variable.IV", x = "Group", y = "Rate.1", 
     y.label = "Perc.1", y.label.col = "red", y.title = NULL, 
     bar.col = "cornflowerblue", width = "Rate.group", width.label = "Perc.group", 
-    width.label.col = "black", n.col = NULL, theme = "classic", 
+    width.label.col = "black", ncol = NULL, theme = "classic", 
     background = "white")
 ```
 
@@ -372,11 +372,11 @@ ggstat(stat.train, width = .2)
 
 #### Plot WOE
 
-We can also plot other statistics (e.g., "WOE") by changing the *y* value to `y = 'WOE'`, and and *y.label* to `y.label = 'WOE.round'`. We can also set the number of columns for the plot by changing the *n.col* argument.
+We can also plot other statistics (e.g., "WOE") by changing the *y* value to `y = 'WOE'`, and and *y.label* to `y.label = 'WOE.round'`. We can also set the number of columns for the plot by changing the *ncol* argument.
 
 ``` r
 ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', width = .2, 
-  width.label = NULL, n.col = 4)
+  width.label = NULL, ncol = 4)
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-16-1.png)
@@ -406,7 +406,7 @@ Replace Bins with WOE: `replace.woe`
 For logistic model, sometimes it is useful to convert original categorical variables into numeric WOE value, since it can guarantee the linearity between the dependent and independent variables. The *replace* argument can be used to control whether the original values should be replaced (`replace = TRUE`) or not (\`replace = FALSE'). If the *replace* argument is set to *TRUE*, the original values will be replaced by the corresponding WOE values directly. If the *replace* argument is set to *FALSE*, the *WOE* value will be added as a new column with \*\_woe\* appended to the original column name.
 
 ``` r
-replace.woe(data = dt.train, level.stat.output = stat.train, replace = FALSE) %>%
+replace.woe(data = dt.train, stat = stat.train, replace = FALSE) %>%
   head
 ```
 
@@ -426,7 +426,7 @@ replace.woe(data = dt.train, level.stat.output = stat.train, replace = FALSE) %>
     ## 6   0.01728312 -0.5844896
 
 ``` r
-dt.train <- replace.woe(data = dt.train, level.stat.output = stat.train, 
+dt.train <- replace.woe(data = dt.train, stat = stat.train, 
   replace = TRUE)
 head(dt.train)
 ```
@@ -642,7 +642,7 @@ head(dt.test)
 After converting the original numeric values into different bins, then we can replace the bins with the corresponding WOE values estimated based on the training data.
 
 ``` r
-dt.test <- replace.woe(dt.test, level.stat.output = stat.train, replace = TRUE)
+dt.test <- replace.woe(dt.test, stat = stat.train, replace = TRUE)
 head(dt.test)
 ```
 
@@ -711,7 +711,7 @@ After checking the model performance, it is also useful to produce the regressio
 
 ``` r
 pred.stat <- coef2rate(model = lg.aic, data = dt.test, 
-  level.stat.output = stat.train, force.change = TRUE)
+  stat = stat.train, force.change = TRUE)
 head(pred.stat)
 ```
 

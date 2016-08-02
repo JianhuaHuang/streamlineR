@@ -26,7 +26,7 @@ The predicted rates for each group and variable, together with the
    original stat table.
 }
 \description{
-\code{coef2rate} The coef2rate function is designed to convert regression
+\code{coef2rate} is designed to convert regression
  coefficients back to the good/bad rates for each group and variables, 
  so that the non-technical audience can understand it easily. 
 The coef2rate function works in two different ways dependent on whether 

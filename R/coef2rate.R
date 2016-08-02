@@ -1,6 +1,6 @@
 #' Convert coefficient to rates
 #' 
-#' \code{coef2rate} The coef2rate function is designed to convert regression
+#' \code{coef2rate} is designed to convert regression
 #'  coefficients back to the good/bad rates for each group and variables, 
 #'  so that the non-technical audience can understand it easily. 
 #' The coef2rate function works in two different ways dependent on whether 
@@ -111,6 +111,3 @@ coef2rate <- function(model, data, stat, force.change = TRUE,
   
   return(pred.stat)
 }
-# conv.lvs <- level.stat(data = dt.conv, x = col.x, y = 'Conversion_Status_1yr')
-# conv.pred.stat <- coef2rate(data = dt.conv, model = cox.aic,
-#   stat = conv.lvs, time = 12, force.change = TRUE)
