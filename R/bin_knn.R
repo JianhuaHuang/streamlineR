@@ -10,7 +10,7 @@
 #' @param formula The formula for logistic (y ~ x) or survival model 
 #'    (Surv(time, status) ~ x). 
 #' @param data The data frame used for binning
-#' @param n.group Number of binned groups
+#' @param n.group Number of binning groups
 #' @param min.bucket The minimum proportion of population in the buckets
 #'    (a value between 0 and 1)
 #' @return Shows a ggplot with the regression coefficients and the binned groups

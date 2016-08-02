@@ -12,7 +12,7 @@ bin.knn(formula, data, n.group = 5, min.bucket = 0.05)
 
 \item{data}{The data frame used for binning}
 
-\item{n.group}{Number of binned groups}
+\item{n.group}{Number of binning groups}
 
 \item{min.bucket}{The minimum proportion of population in the buckets
 (a value between 0 and 1)}

@@ -11,13 +11,19 @@ bin.rpart(formula, data, rcontrol = rpart.control(), n.group = NULL, ...)
 
 \item{data}{The data frame used for binning}
 
-\item{n.group}{Number of binned groups}
+\item{rcontrol}{The arguments passed into \code{\link[rpart]{rpart.control}}}
 
-\item{min.bucket}{The minimum proportion of population in the buckets
-(a value between 0 and 1)}
+\item{n.group}{Number of acceptable binning groups. It can be NULL,
+a single number (e.g., 5), or a vector (e.g., 3:7). If the value is NULL, it 
+returns the output with the default \emph{rpart.control}
+settings. If the n.group is a numeric value, it will change the \emph{cp} 
+value within \emph{rpart.control} automatically, 
+until it gets the desirable number of groups}
+
+\item{...}{All other arguments that can be passed to \code{rpart}}
 }
 \value{
-Shows a ggplot with the regression coefficients and the binned groups
+The cut points (\emph{cut.points}) and \emph{bins}.
 }
 \description{
 \code{bin.rpart} relies on \code{\link[rpart]{rpart}}
@@ -30,13 +36,6 @@ argument of \emph{control} in \code{rpart} is named as \emph{rcontrol} in
 }
 \examples{
 data <- rpart::stagec
-bin.knn(pgstat ~ age, data = data, n.group = 4, min.bucket = .1)
-# can be combine with the manipulate::manipulate function to change the 
-# binning interactively
-library(manipulate)
-manipulate(bin.knn(pgstat ~ age, data = data, n.group, min.bucket),
-  n.group = slider(1, 10, step = 1, initial = 5, label = 'Number of groups'),
-  min.bucket = slider(0.01, 1, step = 0.01, initial = 0.05,
-  label = 'Minimum Population Size (\%)'))
+bin.rpart(pgstat ~ age, data = data)
 }
 
