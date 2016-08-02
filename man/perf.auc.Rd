@@ -20,7 +20,7 @@ For a GLM model, it returns the ROC curve and the AUC values for
    AUC value (iAUC)
 }
 \description{
-\coce{perf.auc} checks model performance for a given model object, 
+\code{perf.auc} checks model performance for a given model object, 
 using the training and test dataset.
 }
 \examples{
