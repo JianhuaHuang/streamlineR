@@ -1,6 +1,6 @@
 #' Check GLM or survival model performance based on AUC
 #' 
-#' \coce{perf.auc} checks model performance for a given model object, 
+#' \code{perf.auc} checks model performance for a given model object, 
 #' using the training and test dataset.  
 #' 
 #' @param model The GLM or survival model (coxph) object. 
