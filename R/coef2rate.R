@@ -104,6 +104,9 @@ coef2rate <- function(model, data, stat, force.change = TRUE,
         paste0(round(Rate.group * 100), '%'),
         paste0(round(Rate.group * 100, 1), '%')))
   
+  pred.xs <- left_join(freq, pred.xs, by = c('Variable', 'Group'))
+  
+  
   # check whether WOE is used for modeling  
   if(all(pred.xs$Group %in% stat$WOE)) {
     pred.xs <- rename(pred.xs, WOE = Group)
@@ -113,20 +116,22 @@ coef2rate <- function(model, data, stat, force.change = TRUE,
   # with the original variable names
   pred.xs$Variable <- gsub('_woe', '', pred.xs$Variable)
   
-  pred.stat <- left_join(stat, pred.xs) %>% 
-    left_join(freq) %>%
-    filter(!is.na(Pred.Rate.1)) %>%
-    mutate(Variable = factor(Variable, levels = unique(Variable)),
-      Group = factor(Group, levels = unique(Group)),
-      Variable.IV = factor(Variable.IV, levels = unique(Variable.IV)),
-      Group = factor(Group,
-        levels = c(setdiff(unique(Group), 'Missing'), 'Missing')), 
-      Pred.Perc.1 = ifelse(Pred.Rate.1 > .01,
-        paste0(round(Pred.Rate.1 * 100), '%'),
-        paste0(round(Pred.Rate.1 * 100, 1), '%'))) %>%
-    select(Variable, Variable.IV, Group, Freq.group, Rate.group, Perc.group,
-      Pred.Rate.1, Pred.Perc.1) %>% 
-    data.frame
+  suppressWarnings(
+    pred.stat <- left_join(stat[, c('Variable', 'Group', 'WOE', 'Variable.IV')], 
+      pred.xs) %>% 
+      filter(!is.na(Pred.Rate.1)) %>%
+      mutate(Variable = factor(Variable, levels = unique(Variable)),
+        Group = factor(Group, levels = unique(Group)),
+        Variable.IV = factor(Variable.IV, levels = unique(Variable.IV)),
+        Group = factor(Group,
+          levels = c(setdiff(unique(Group), 'Missing'), 'Missing')), 
+        Pred.Perc.1 = ifelse(Pred.Rate.1 > .01,
+          paste0(round(Pred.Rate.1 * 100), '%'),
+          paste0(round(Pred.Rate.1 * 100, 1), '%'))) %>%
+      dplyr::select(Variable, Variable.IV, Group, Freq.group, Rate.group, 
+        Perc.group, Pred.Rate.1, Pred.Perc.1) %>% 
+      data.frame
+  )
   
   return(pred.stat)
 }

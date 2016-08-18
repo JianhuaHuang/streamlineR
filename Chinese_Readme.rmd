@@ -329,14 +329,11 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 pred.stat <- coef2rate(model = lg.aic, data = dt.test, 
   stat = stat.train, force.change = TRUE)
 head(pred.stat)
-
-# Compare The Actual & Prediction Rates, they should be close to each other
-pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 ```
 
 计算到预测值后，我们同样可以用`ggstat`方程来看预测值的区别：
 ```{r}
-ggstat(pred.stat, y = 'Pred.Rate.1')
+ggstat(pred.stat, y = 'Pred.Rate.1',  y.label = 'Pred.Perc.1')
 ```
 
 

@@ -349,14 +349,11 @@ After checking the model performance, it is also useful to produce the regressio
 pred.stat <- coef2rate(model = lg.aic, data = dt.test, 
   stat = stat.train, force.change = TRUE)
 head(pred.stat)
-
-# Compare The Actual & Prediction Rates, they should be close to each other
-pred.stat[,c('Rate.1', 'Pred.Rate.1')]
 ```
 
 After calculating the *Pred.Rate.1*, we can again plot it using the ggstat function by setting `y = 'Pred.Rate.1'`
 ```{r}
-ggstat(pred.stat, y = 'Pred.Rate.1')
+ggstat(pred.stat, y = 'Pred.Rate.1',  y.label = 'Pred.Perc.1')
 ```
 
 
