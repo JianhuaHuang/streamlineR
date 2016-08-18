@@ -31,7 +31,8 @@
 #'    model. 
 #' 
 #' @return The predicted rates for each group and variable, together with the 
-#'    original stat table. 
+#'    frequency of records in each group, and the information value passed to the 
+#'    stat argument. 
 #'    
 #' @examples
 #' data <- rpart::stagec
@@ -92,6 +93,18 @@ coef2rate <- function(model, data, stat, force.change = TRUE,
   })
   
   pred.xs <- do.call(rbind, pred.x.list)
+  
+  # calculate population
+  freq <- melt(data[, xs], id.vars = NULL) %>%
+    group_by(Variable = variable, Group = value) %>%
+    summarise(Freq.group = n()) %>%
+    mutate(
+      Rate.group = Freq.group / nrow(data), 
+      Perc.group = ifelse(Rate.group > .01, 
+        paste0(round(Rate.group * 100), '%'),
+        paste0(round(Rate.group * 100, 1), '%')))
+  
+  # check whether WOE is used for modeling  
   if(all(pred.xs$Group %in% stat$WOE)) {
     pred.xs <- rename(pred.xs, WOE = Group)
   }
@@ -100,14 +113,27 @@ coef2rate <- function(model, data, stat, force.change = TRUE,
   # with the original variable names
   pred.xs$Variable <- gsub('_woe', '', pred.xs$Variable)
   
-  pred.stat <- left_join(stat, pred.xs) %>%
+  pred.stat <- left_join(stat, pred.xs) %>% 
+    left_join(freq) %>%
     filter(!is.na(Pred.Rate.1)) %>%
     mutate(Variable = factor(Variable, levels = unique(Variable)),
       Group = factor(Group, levels = unique(Group)),
       Variable.IV = factor(Variable.IV, levels = unique(Variable.IV)),
       Group = factor(Group,
-        levels = c(setdiff(unique(Group), 'Missing'), 'Missing'))) %>%
+        levels = c(setdiff(unique(Group), 'Missing'), 'Missing')), 
+      Pred.Perc.1 = ifelse(Pred.Rate.1 > .01,
+        paste0(round(Pred.Rate.1 * 100), '%'),
+        paste0(round(Pred.Rate.1 * 100, 1), '%'))) %>%
+    select(Variable, Variable.IV, Group, Freq.group, Rate.group, Perc.group,
+      Pred.Rate.1, Pred.Perc.1) %>% 
     data.frame
   
   return(pred.stat)
 }
+
+# data <- rpart::stagec
+# data <- na.omit(data)
+# mod <- glm(pgstat ~ eet + grade + ploidy, data, family=binomial(link='logit'))
+# st <- level.stat(data, y = 'pgstat')
+# rs <- coef2rate(mod, data, st)
+# ggstat(rs, y = 'Pred.Rate.1', y.label = 'Pred.Perc.1')

@@ -23,7 +23,8 @@ model.}
 }
 \value{
 The predicted rates for each group and variable, together with the 
-   original stat table.
+   frequency of records in each group, and the information value passed to the 
+   stat argument.
 }
 \description{
 \code{coef2rate} is designed to convert regression
