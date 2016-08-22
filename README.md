@@ -1,4 +1,4 @@
--   [Streamline Routine Modeling Work in R: streamlineR](#streamline-routine-modeling-work-in-r-streamliner)
+-   [Streamline Routine Modeling Work in R:  streamlineR](#streamline-routine-modeling-work-in-r-streamliner)
     -   [Packages Setup](#packages-setup)
         -   [Install Dependent Packages](#install-dependent-packages)
         -   [Load Dependent Packages](#load-dependent-packages)

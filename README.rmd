@@ -1,5 +1,5 @@
 ---
-author: "Jianhua Huang"
+author: "Jianhua Huang" 
 date: "July 23, 2016"
 title: "Streamline Routine Modeling Work in R: streamlineR"
 output:
