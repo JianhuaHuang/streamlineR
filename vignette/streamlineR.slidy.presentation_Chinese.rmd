@@ -1,26 +1,25 @@
 ---
-title: 'Streamline Routine Modeling Work in R: streamlineR'
-author: "Jianhua Huang"
-date: "July 27, 2016"
+title: '流水化常规建模步骤：stremlineR包'
+author: "黄剑华"
+date: "2016/08/27"
 output:
   slidy_presentation:
     duration: 60
     fig_height: 5
     fig_width: 7
     incremental: yes
-runtime: shiny
 ---
 
-```{r knitr.setup, include=FALSE}
+```{r, include=FALSE}
 rm(list = ls())
 # dir <- 'F:/Projects/Rpackage/streamlineR'
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 ```
 
 
-## Packages Setup
+## 安装R包
 <ul class = "incremental">
-**Install Dependent Packages**
+**安装依赖**
 ```{r, eval=FALSE}
 # If the default mirror is blocked, choose another mirror to install R packages, 
 # chooseCRANmirror()
@@ -30,7 +29,7 @@ sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpar
   install.packages)
 ```
 
-**Load Dependent Packages**
+**加载依赖包**
 ```{r, eval=FALSE}
 # Load pacakges
 sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
@@ -59,10 +58,11 @@ library(pec)
 library(MASS)
 library(pROC)
 library(manipulate)
+library(shiny)
 library(streamlineR)
 ```
 
-**Install `streamlineR` from Github**
+**从GitHub上安装`streamlineR`**
 ```{r,eval=FALSE}
 # Ff the install_github does not work, you can download the package from github,
 # and then install the package locally: 
@@ -72,9 +72,9 @@ library(streamlineR)
 ```
 </ul>
 
-## Data Preparation
+## 数据准备(Survival PBC数据集)
 <ul class = "incremental">
-**Load Data**
+**加载数据**
 ```{r}
 dt <- survival::pbc %>%
   transmute(age = round(age), gender = sex, platelet, stage = as.character(stage), 
@@ -89,7 +89,7 @@ str(dt)
 head(dt)
 ```
 
-**Split Data into Training and Test Datasets**
+**把数据分成训练数据跟测试数据**
 ```{r}
 set.seed(1111)
 ind.train <- createDataPartition(dt$status, p = .7, list = FALSE)
@@ -107,7 +107,7 @@ dt.test.bk <- dt.test
 </ul>
 
 
-## Bin Training Data Based on Regression Coefficients: `bin.knn`
+## 基于单变量回归的数据分箱: `bin.knn`
 <ul class = "incremental">
 ```{r}
 bin.knn(status ~ platelet, data = dt.train, n.group = 5, min.bucket = 0.05)
@@ -135,18 +135,19 @@ renderPlot({
     n.group = input$n_group, min.bucket = input$min_pop)
 })
 ```
-*Sometimes the web server is not stable. Please reload/refresh the page, if you can not see a figure above*
+
+如果上图不能正确显示，请刷新网页
 </ul>
 
-## Bin Training Data Based on rpart: `bin.rpart` 
+## 基于决策树的数据分箱: `bin.rpart` 
 <ul class = "incremental">
-**Decision Tree Algorithm (Recursive Partitioning)**: `rpart`
+**决策树算法（递归分割）**: `rpart` (recursive partitioning)
 ```{r}
 rpart(formula = status ~ age, data = dt.train, 
   control = rpart.control(minbucket = .01 * nrow(dt.train)))
 ```
 
-**Binning for Logistic Model**
+**逻辑回归分箱**
 ```{r}
 lg.bin.age <- bin.rpart(formula = status ~ age, data = dt.train, 
   rcontrol = rpart.control(minbucket = .01 * nrow(dt.train)))
@@ -158,7 +159,7 @@ lg.bin.platelet <- bin.rpart(formula = status ~ platelet, data = dt.train,
 ```
 
 
-**Binning for Survival Model**
+**生存模型分箱**
 ```{r}
 ## complexity parameter (cp) = 0.01
 surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
@@ -166,7 +167,8 @@ surv.bin.age <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 ```
 
 
-**Search for Appropriate Number of Cut Points**
+**自动寻找合适的分箱数**
+
 ```{r,echo=FALSE,fig.width=6, eval=TRUE}
 inputPanel(
   sliderInput("cp", label = 'cp', min = 0.001, max = .03,
@@ -178,7 +180,7 @@ renderPrint({
     rcontrol = rpart.control(cp  = input$cp, minbucket = .01 * nrow(dt.train.bk))) 
 })
 ```
-*Sometimes the web server is not stable. Please reload/refresh the page, if you can not see cut points above*
+
 
 ```{r}
 surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
@@ -186,7 +188,7 @@ surv.bin.age2 <- bin.rpart(formula = Surv(time, status) ~ age, data = dt.train,
 ```
 
 
-**Replace Numerical Varialbes with Bins**
+**替换数值型变量**
 ```{r}
 # We don't need the time column anmore, delete it in both dt.train and dt.test
 dt.train <- dplyr::select(dt.train, -time)  
@@ -199,7 +201,7 @@ head(dt.train)
 </ul>
 
 
-## Level Statistics (Frequence, Rate, WOE, and IV): `level.stat`
+## 分组统计： `level.stat`
 <ul class = "incremental">
 ```{r}
 col.x <- c('age', 'gender', 'platelet', 'stage')
@@ -208,9 +210,9 @@ head(stat.train)
 ```
 </ul>
 
-## Visualize Level Statistics: `ggstat`
+## 可视化分组统计结果: `ggstat`
 <ul class = "incremental">
-**Plot with Default Arguments**
+**利用默认值作图**
 ```{r}
 ggstat(data = stat.train, var = "Variable.IV", x = "Group", y = "Rate.1", 
     y.label = "Perc.1", y.label.col = "red", y.title = NULL, 
@@ -218,19 +220,19 @@ ggstat(data = stat.train, var = "Variable.IV", x = "Group", y = "Rate.1",
     width.label.col = "black", ncol = NULL, theme = 'classic', background = "white")
 ```
 
-**Constant Bar Width**
+**统一条形宽度**
 ```{r}
 ggstat(stat.train, width = .2)
 ```
 
-**Plot WOE**
+**用WOE作图**
 ```{r,fig.height=3}
 ggstat(stat.train, y = 'WOE', y.label = 'WOE.round', width = .2, 
   width.label = NULL, ncol = 4)
 ```
 </ul>
 
-## Replace Bins with WOE: `replace.woe`
+## 利用WOE代替分类变量: `replace.woe`
 <ul class = "incremental">
 ```{r}
 replace.woe(data = dt.train, stat = stat.train, replace = FALSE) %>%
@@ -242,7 +244,7 @@ head(dt.train)
 ```
 </ul>
 
-## Correlation between Independent Variables: `ggcorr`
+## 自变量间的相关性：`ggcorr`
 <ul class = "incremental">
 ```{r}
 cor.mat <- cor(dt.train[, col.x])
@@ -263,15 +265,15 @@ ggcorr(cor.random, lower = TRUE, var.position = 'diagonal', high = 'blue',
 ```
 </ul>
 
-## Logistic Model
+## 建立逻辑(logistic)回归模型
 <ul class = "incremental">
-**Full Model**
+**全模型**
 ```{r}
 lg <- glm(status ~ ., dt.train, family=binomial(link='logit'))
 summary(lg)
 ```
 
-**Stepwise Variable Selection**
+**分步(stepwise)变量筛选**
 ```{r}
 lg.aic <- stepAIC(lg, k =  qchisq(0.05, 1, lower.tail=F))   # p to enter: 0.05
 summary(lg.aic)
@@ -280,9 +282,9 @@ data.frame(vif(lg.aic))
 ```
 </ul>
 
-## Prepare Test Data: `bin.custom & replace.woe`
+## 测试集数据准备: `bin.custom & replace.woe`
 <ul class = "incremental">
-**Bin Test Data**: `bin.custom`
+**数据分箱**: `bin.custom`
 ```{r}
 head(dt.test)
 dt.test$age <-  bin.custom(dt.test$age, cut.p = lg.bin.age$cut.points)
@@ -291,22 +293,22 @@ head(dt.test)
 ```
 
 
-**Replace Binned Test Data with WOE**: `replace.woe`
+**利用WOE代替分类变量**: `replace.woe`
 ```{r}
 dt.test <- replace.woe(dt.test, stat = stat.train, replace = TRUE)
 head(dt.test)
 ```
 </ul>
 
-## Check Model Performance: `perf.auc & perf.decile`
+## 检测模型性能: `perf.auc & perf.decile`
 <ul class = "incremental">
-**Check Performance Based on AUC**: `perf.auc`
+**基于AUC的性能检测**: `perf.auc`
 ```{r}
 perf.auc(model = lg.aic, dt.train, dt.test)
 ```
 
 
-**Check Performance Based on Decile Rate**: `perf.decile`
+**基于十分位的性能检测**: `perf.decile`
 ```{r}
 pred.test <- predict(lg.aic, newdata = dt.test, type = 'response')
 perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
@@ -314,7 +316,7 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 </ul>
 
 
-## Convert Coefficients to Rate: `coef2rate`
+## 回归系数转换成原始0/1率: `coef2rate`
 <ul class = "incremental">
 ```{r}
 summary(lg.aic)
@@ -326,7 +328,7 @@ ggstat(pred.stat, y = 'Pred.Rate.1', y.label = 'Pred.Perc.1')
 ```
 </ul>
 
-## Reference:
+## 参考(reference)：
 * streamlineR package information: https://github.com/JianhuaHuang/streamlineR 
 * Submit bug: http://github.com/JianhuaHuang/streamlineR/issues
 

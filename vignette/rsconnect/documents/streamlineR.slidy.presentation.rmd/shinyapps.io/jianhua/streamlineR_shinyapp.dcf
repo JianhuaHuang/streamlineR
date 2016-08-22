@@ -2,8 +2,8 @@ name: streamlineR_shinyapp
 account: jianhua
 server: shinyapps.io
 appId: 116806
-bundleId: 517352
+bundleId: 538093
 url: https://jianhua.shinyapps.io/streamlineR_shinyapp/
-when: 1469654442.60321
+when: 1471893965.01408
 asMultiple: FALSE
 asStatic: FALSE

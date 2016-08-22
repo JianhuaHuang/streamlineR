@@ -2,8 +2,8 @@ name: streamlineR_slidy_presentation
 account: jianhua
 server: shinyapps.io
 appId: 116792
-bundleId: 516110
+bundleId: 538000
 url: https://jianhua.shinyapps.io/streamlineR_slidy_presentation/
-when: 1469554342.64221
+when: 1471888354.11419
 asMultiple: FALSE
 asStatic: FALSE
