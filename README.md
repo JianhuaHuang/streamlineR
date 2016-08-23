@@ -53,10 +53,9 @@ This analysis relies on other packages. If these packages are not available yet 
 ``` r
 # If the default mirror is blocked, choose another mirror to install R packages, 
 # chooseCRANmirror()
-sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
-  'scales', 'shiny', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
-  'manipulate'), 
-  install.packages)
+install.packages(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2',
+  'corrplot','rpart', 'scales', 'shiny', 'survival', 'gridExtra', 'devtools', 
+  'pec', 'MASS', 'pROC', 'manipulate'), dependencies = TRUE)
 ```
 
 #### Load Dependent Packages

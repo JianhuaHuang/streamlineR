@@ -24,10 +24,9 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 ```{r, eval=FALSE}
 # If the default mirror is blocked, choose another mirror to install R packages, 
 # chooseCRANmirror()
-sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
-  'scales', 'shiny', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
-  'manipulate', 'shiny'), 
-  install.packages)
+install.packages(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2',
+  'corrplot','rpart', 'scales', 'shiny', 'survival', 'gridExtra', 'devtools', 
+  'pec', 'MASS', 'pROC', 'manipulate'), dependencies = TRUE)
 ```
 
 **Load Dependent Packages**

@@ -30,10 +30,9 @@
 ``` r
 # 如果某些镜像被屏蔽了，可以用下面的方程选择其他镜像进行安装
 # chooseCRANmirror()
-sapply(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2', 'corrplot','rpart', 
-  'scales', 'shiny', 'survival', 'gridExtra', 'devtools', 'pec', 'MASS', 'pROC', 
-  'manipulate'), 
-  install.packages)
+install.packages(c('dplyr', 'car', 'caret', 'e1071', 'knitr', 'reshape2',
+  'corrplot','rpart', 'scales', 'shiny', 'survival', 'gridExtra', 'devtools', 
+  'pec', 'MASS', 'pROC', 'manipulate'), dependencies = TRUE)
 ```
 
 ### 加载依赖包
