@@ -51,7 +51,7 @@ ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red',
   p <- ggplot(cor.df, aes(x, y)) + 
     geom_tile(color = 'grey90', fill = 'white') +
     geom_point(data = cor.df0, aes(fill = corr, size = abs(corr) * 10 * psize), 
-      color = 'white', pch = 21, alpha = .5, show.legend = F) + 
+      color = 'white', pch = 21, alpha = 1, show.legend = F) + 
     scale_size_identity() +
     scale_fill_gradient2(name = NULL, high = high, low = low, 
       limits = c(-1, 1), guide = FALSE) + 
@@ -80,11 +80,11 @@ ggcorr <- function(cor.mat, lower = FALSE, psize = NULL, high = 'red',
   
   suppressWarnings(print(p))
 }
-# xx <- matrix(runif(100), 10)
-# colnames(xx) <- paste0('Variable ', 1:ncol(xx))
-# cor.mat <- cor(xx)
-# 
-# ggcorr(cor.mat)
+xx <- matrix(runif(100), 10)
+colnames(xx) <- paste0('Variable ', 1:ncol(xx))
+cor.mat <- cor(xx)
+
+ggcorr(cor.mat)
 # ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
 #   add.legend = FALSE)
 # ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
