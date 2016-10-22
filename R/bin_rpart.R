@@ -68,9 +68,9 @@ bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL,
     stringsAsFactors = F)
   tree.value[row.names(tree.where), 'Where'] <- tree.where$Where
   
-  tree.cut <- group_by(tree.value, Where) %>%
-    summarise(Cut_Start = min(Value), Cut_End = max(Value)) %>%
-    arrange(Cut_End)
+  tree.cut <- dplyr::group_by(tree.value, Where) %>%
+    dplyr::summarise(Cut_Start = min(Value), Cut_End = max(Value)) %>%
+    dplyr::arrange(Cut_End)
   
   if(is.na(tree.cut$Cut_End[nrow(tree.cut)])) {
     cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 2)]
