@@ -7,7 +7,7 @@
 coef2rate(model, data, stat, force.change = TRUE, time = NULL)
 }
 \arguments{
-\item{model}{The GLM/survival (coxph) model object}
+\item{model}{The model object}
 
 \item{data}{The data used to calculate the rates}
 

@@ -20,7 +20,7 @@
 #' coefficients - keep all other variables unchanged, and only change the value 
 #' for one predictor. By doing this, we can get the pure effect of that variable.
 #'  
-#' @param model The GLM/survival (coxph) model object 
+#' @param model The model object 
 #' @param data The data used to calculate the rates
 #' @param stat The statistics output from the \code{level.stat} function. 
 #'    The group/WOE is used to link the predicted rates back to the original
@@ -44,7 +44,17 @@
 
 coef2rate <- function(model, data, stat, force.change = TRUE,
   time = NULL) {
-  xs <- labels(model$terms)
+  # xs <- labels(model$terms)
+  xs <- all.vars(delete.response(terms(model)))
+  random_effect_xs = lme4:::findbars(formula(model))
+  if (!is.null(random_effect_xs)) {
+    re_xs = sapply(as.character(random_effect_xs), function(val) {
+      x = gsub(' | ', ' + ', val, fixed = TRUE) %>% 
+        strsplit(., ' + ', fixed = TRUE)
+    })
+    re_xs <- unlist(re_xs)
+    xs <- setdiff(c(fixed_effects_xs, re_xs), '1')
+  }
   
   pred.x.list <- lapply(xs, function(x) {
     

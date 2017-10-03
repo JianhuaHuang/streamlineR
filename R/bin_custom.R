@@ -31,7 +31,7 @@ bin.custom <- function(x, cut.p, names = NULL,
   cut.p.num <- as.numeric(cut.p)
   
   # add ends to the cut.p
-  cut.p_ends <- c(-Inf, cut.p.num, max(x.num, na.rm = T))
+  cut.p_ends <- unique(c(-Inf, cut.p.num, max(x.num, na.rm = T)))
   x.bins <- cut(x.num, cut.p_ends, include.lowest = T)
   
   # change the levels from -Inf to the actual minimum value
@@ -53,7 +53,7 @@ bin.custom <- function(x, cut.p, names = NULL,
         for (i in 2:length(cut.p)) {
           bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
         }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
-      levels(x.bins) <- bin.names
+      levels(x.bins) <- bin.names[1:nlevels(x.bins)]
     }
   }
   # if there is only one unique value in the level, change the x.bins to
