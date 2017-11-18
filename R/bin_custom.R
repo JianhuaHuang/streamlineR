@@ -55,6 +55,7 @@ bin.custom <- function(x, cut.p, names = NULL,
         }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
       levels(x.bins) <- bin.names[1:nlevels(x.bins)]
     }
+      x.bins <- droplevels(x.bins)  # some bins without values, remove it
   }
   # if there is only one unique value in the level, change the x.bins to
   # that value

@@ -46,6 +46,7 @@ coef2rate <- function(model, data, stat, force.change = TRUE,
   time = NULL) {
   # xs <- labels(model$terms)
   xs <- all.vars(delete.response(terms(model)))
+  
   random_effect_xs = lme4:::findbars(formula(model))
   if (!is.null(random_effect_xs)) {
     re_xs = sapply(as.character(random_effect_xs), function(val) {
@@ -53,7 +54,7 @@ coef2rate <- function(model, data, stat, force.change = TRUE,
         strsplit(., ' + ', fixed = TRUE)
     })
     re_xs <- unlist(re_xs)
-    xs <- setdiff(c(fixed_effects_xs, re_xs), '1')
+    xs <- setdiff(c(xs, re_xs), '1')
   }
   
   pred.x.list <- lapply(xs, function(x) {
@@ -105,7 +106,9 @@ coef2rate <- function(model, data, stat, force.change = TRUE,
   pred.xs <- do.call(rbind, pred.x.list)
   
   # calculate population
-  freq <- melt(data[, xs], id.vars = NULL) %>%
+  # freq <- melt(data[, xs], id.vars = NULL) %>%   
+  # remove comma, to return a data.frame when xs is 1 column
+  freq <- melt(data[xs], id.vars = NULL) %>%
     group_by(Variable = variable, Group = value) %>%
     summarise(Freq.group = n()) %>%
     mutate(
