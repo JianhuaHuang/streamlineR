@@ -34,7 +34,7 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
   
   rs.x <- lapply(x, function(xx) {
     # check whether Y is binary value
-    if(length(unique(data[, y])) != 2) stop('Y is not binary value')
+    if(length(unique(data[, y])) > 2) stop('Y is not binary value')
     
     dt <- data[, c(xx, y)]
     
