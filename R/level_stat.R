@@ -43,7 +43,12 @@ level.stat <- function(data, x = NULL, y, flag.0 = 0, flag.1 = 1) {
     dt[, y] <- ifelse(dt[, y] == flag.0, 0, 1)
     
     dt.iv <- table(dt) %>%
-      as.data.frame.matrix %>%
+      as.data.frame.matrix
+    
+    # fill in the counts as 0, if it is missing in the FLAG
+    dt.iv[, setdiff(c('0', '1'), colnames(dt.iv))] <- 0   
+    
+    dt.iv <- dt.iv %>%
       transmute(Variable = xx,
         Group = row.names(.),
         Freq.0 = `0`,
