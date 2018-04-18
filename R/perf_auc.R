@@ -76,11 +76,11 @@ perf.auc <- function(model, train, test) {
   if(mod.class == 'glm') {
     col.y <- all.vars(mod.train$formula)[1]
     
-    roc.train <- roc(actual.train ~ pred.train,
+    roc.train <- roc(actual.train ~ round(pred.train, 2),
       data = data.frame(actual.train = train[, col.y], pred.train))
     roc.train$auc
     
-    roc.test <- roc(actual.test ~ pred.test,
+    roc.test <- roc(actual.test ~ round(pred.test, 2),
       data = data.frame(actual.test = test[, col.y], pred.test))
     roc.test$auc
     
@@ -99,6 +99,9 @@ perf.auc <- function(model, train, test) {
     
     p <- ggplot(roc, aes(x = FP, y = TP, color = Data)) +
       geom_line() +
+      geom_line(data = data.frame(x = 0:1, y = 0:1), aes(x, y), 
+        linetype = 'dashed', color = 'grey30') +
+      # geom_abline(intercept = 0, slope = 1, alpha = .7, linetype = 'dashed') + 
       scale_color_discrete(name = NULL, labels = c(
         paste0('Train (AUC: ', round(roc.train$auc, 3), ')'),
         paste0('Test (AUC: ', round(roc.test$auc, 3), ')'))) +
