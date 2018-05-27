@@ -1,9 +1,9 @@
-#' Bin numerical values based on recursive partitioning (rpart)
+#' Bin numerical or factor values based on recursive partitioning (rpart)
 #' 
 #' \code{bin.rpart} relies on \code{\link[rpart]{rpart}}
-#' function to split numerical values into different nodes. According to the 
+#' function to split numerical or factor values into different nodes. According to the 
 #' tree-structure splits generated form \code{rpart}, \code{bin.rpart} further 
-#' divides the numerical values into different bins. 
+#' divides the values into different bins. 
 #' The usage of \code{bin.rpart} is similar to \code{rpart}, except that the 
 #' argument of \emph{control} in \code{rpart} is named as \emph{rcontrol} in 
 #' \code{bin.rpart}
@@ -23,11 +23,12 @@
 #' @examples
 #' data <- rpart::stagec
 #' bin.rpart(pgstat ~ age, data = data)
+#' bin.rpart(pgstat ~ ploidy, data = data)
 #' @export
 
 bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL, 
   ...) {
-  # This function is used to bin the numerical variable for survival model
+  # This function is used to bin the numerical or factor variable for survival model
   # Arg:
   #    formula: the formula used for rpart
   #    data: the dataset used for rpart
@@ -68,36 +69,55 @@ bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL,
     stringsAsFactors = F)
   tree.value[row.names(tree.where), 'Where'] <- tree.where$Where
   
-  tree.cut <- dplyr::group_by(tree.value, Where) %>%
-    dplyr::summarise(Cut_Start = min(Value), Cut_End = max(Value)) %>%
-    dplyr::arrange(Cut_End)
-  
-  if(is.na(tree.cut$Cut_End[nrow(tree.cut)])) {
-    cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 2)]
+  if (class(data[, x.num])=="factor") {
+    # If the values are factored
+    cut.p <- unique(tree.where$Where)
+
+    # Create group names
+    bin.names <- rep(NA, length(cut.p))
+    for (i in 1:length(cut.p)) {
+      bin.names[i] <- paste("group",i)
+    }
+
+    # Map groups to factors
+    x.bins <- factor(bin.names[match(tree.where$Where, cut.p)], levels = bin.names)
+
+    # Build group names
+    tree.cut <- dplyr::group_by(tree.value, Where) %>% summarise(group=paste(unique(Value), collapse=","))
+    cut.p <- tree.cut$group
+
   } else {
-    cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 1)]
+    tree.cut <- dplyr::group_by(tree.value, Where) %>%
+      dplyr::summarise(Cut_Start = min(Value), Cut_End = max(Value)) %>%
+      dplyr::arrange(Cut_End)
+  
+    if(is.na(tree.cut$Cut_End[nrow(tree.cut)])) {
+      cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 2)]
+    } else {
+      cut.p <- tree.cut$Cut_End[1:(nrow(tree.cut) - 1)]
+    }
+    
+    cat(c(x.num, ':', cut.p, '\n'))
+  
+    bin.names <- c(paste('<=', cut.p[1]), rep(NA, length(cut.p) - 1),
+      paste('>', cut.p[length(cut.p)]))
+  
+    if(length(cut.p) > 1) {
+      for (i in 2:length(cut.p)) {
+        bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
+      }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
+  
+    # check whether the Cut_Start and Cut_End are the same
+    # if the same, the <, =, or > signs is not needed
+    bin.names <- ifelse(tree.cut$Cut_Start[1:length(bin.names)] ==
+        tree.cut$Cut_End[1:length(bin.names)], tree.cut$Cut_End, bin.names)
+  
+    tree.cut$Bin <- 'Missing'
+    tree.cut$Bin[1:length(bin.names)] <- bin.names
+  
+    x.bins <- factor(tree.cut$Bin[match(tree.value$Where, tree.cut$Where)],
+      levels = tree.cut$Bin)
   }
-  
-  cat(c(x.num, ':', cut.p, '\n'))
-  
-  bin.names <- c(paste('<=', cut.p[1]), rep(NA, length(cut.p) - 1),
-    paste('>', cut.p[length(cut.p)]))
-  
-  if(length(cut.p) > 1) {
-    for (i in 2:length(cut.p)) {
-      bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
-    }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
-  
-  # check whether the Cut_Start and Cut_End are the same
-  # if the same, the <, =, or > signs is not needed
-  bin.names <- ifelse(tree.cut$Cut_Start[1:length(bin.names)] ==
-      tree.cut$Cut_End[1:length(bin.names)], tree.cut$Cut_End, bin.names)
-  
-  tree.cut$Bin <- 'Missing'
-  tree.cut$Bin[1:length(bin.names)] <- bin.names
-  
-  x.bins <- factor(tree.cut$Bin[match(tree.value$Where, tree.cut$Where)],
-    levels = tree.cut$Bin)
   
   return(list(cut.points = cut.p, bins = x.bins))
 }
