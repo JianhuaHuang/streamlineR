@@ -64,8 +64,8 @@ bin.custom <- function(x, cut.p, names = NULL,
     group_by(x.bins) %>%
     summarise(unique.x = length(unique(x)), min.x = min(x))
   
-  levels(x.bins) <- ifelse(x.bin.unique$unique.x == 1, x.bin.unique$min.x,
-    levels(x.bins))
+  # levels(x.bins) <- ifelse(x.bin.unique$unique.x == 1, x.bin.unique$min.x,
+  #  levels(x.bins))
   
   if(!is.null(names)) levels(x.bins) <- names # coerce to change levels
   
