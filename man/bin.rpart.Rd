@@ -29,7 +29,7 @@ The cut points (\emph{cut.points}) and \emph{bins}.
 \code{bin.rpart} relies on \code{\link[rpart]{rpart}}
 function to split numerical values into different nodes. According to the 
 tree-structure splits generated form \code{rpart}, \code{bin.rpart} further 
-divides the numerical values into different bins. 
+divides the numerical values into different bins, and record the cut points. 
 The usage of \code{bin.rpart} is similar to \code{rpart}, except that the 
 argument of \emph{control} in \code{rpart} is named as \emph{rcontrol} in 
 \code{bin.rpart}

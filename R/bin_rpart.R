@@ -3,7 +3,7 @@
 #' \code{bin.rpart} relies on \code{\link[rpart]{rpart}}
 #' function to split numerical values into different nodes. According to the 
 #' tree-structure splits generated form \code{rpart}, \code{bin.rpart} further 
-#' divides the numerical values into different bins. 
+#' divides the numerical values into different bins, and record the cut points. 
 #' The usage of \code{bin.rpart} is similar to \code{rpart}, except that the 
 #' argument of \emph{control} in \code{rpart} is named as \emph{rcontrol} in 
 #' \code{bin.rpart}
@@ -88,10 +88,11 @@ bin.rpart <- function(formula, data, rcontrol = rpart.control(), n.group = NULL,
       bin.names[i] <- paste(cut.p[i - 1], '< \u00B7 <=', cut.p[i])
     }}  # \u00B7 is the unicode for mid-dot, \u2022 is for bullet point
   
+  # Turn off this, to make the naming more consistent
   # check whether the Cut_Start and Cut_End are the same
   # if the same, the <, =, or > signs is not needed
-  bin.names <- ifelse(tree.cut$Cut_Start[1:length(bin.names)] ==
-      tree.cut$Cut_End[1:length(bin.names)], tree.cut$Cut_End, bin.names)
+  # bin.names <- ifelse(tree.cut$Cut_Start[1:length(bin.names)] ==
+  #     tree.cut$Cut_End[1:length(bin.names)], tree.cut$Cut_End, bin.names)
   
   tree.cut$Bin <- 'Missing'
   tree.cut$Bin[1:length(bin.names)] <- bin.names

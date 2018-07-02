@@ -685,8 +685,7 @@ perf.decile(actual = dt.test$status, pred = pred.test, add.legend = TRUE)
 
 ![](README_files/figure-markdown_github/unnamed-chunk-28-1.png)
 
-    ## Source: local data frame [10 x 6]
-    ## 
+    ## # A tibble: 10 × 6
     ##    Decile Actual.rate Predict.rate Freq.1 Freq.0 Freq.group
     ##     <int>       <dbl>        <dbl>  <dbl>  <dbl>      <int>
     ## 1       1    6.666667     10.11034     20    280        300

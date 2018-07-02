@@ -57,13 +57,14 @@ bin.custom <- function(x, cut.p, names = NULL,
     }
       x.bins <- droplevels(x.bins)  # some bins without values, remove it
   }
+  
+  # This part is turned off, because of the inconsistent behavior
   # if there is only one unique value in the level, change the x.bins to
   # that value
-  x.bin.unique <- data.frame(x, x.bins) %>%
-    filter(!is.na(x)) %>%
-    group_by(x.bins) %>%
-    summarise(unique.x = length(unique(x)), min.x = min(x))
-  
+  # x.bin.unique <- data.frame(x, x.bins) %>%
+  #   filter(!is.na(x)) %>%
+  #   group_by(x.bins) %>%
+  #   summarise(unique.x = length(unique(x)), min.x = min(x))
   # levels(x.bins) <- ifelse(x.bin.unique$unique.x == 1, x.bin.unique$min.x,
   #  levels(x.bins))
   
