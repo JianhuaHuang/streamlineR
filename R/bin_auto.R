@@ -41,7 +41,7 @@ bin.auto <- function(data, x_num=NULL, y) {
     
     print(paste(x, 'cut.points:', paste(rs$cut.points, collapse = ' ')))
     print(table(rs$bins))
-    print('\n==========\n')
+    print('\n============\n')
     return(rs)
   })
   
