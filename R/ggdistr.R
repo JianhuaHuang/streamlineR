@@ -27,9 +27,19 @@ ggdistr <- function(data, n_sample=NULL, ncol=3, sample_seed = 123, ...) {
   plot_list <- lapply(colnames(dt_sample), function(col_x) {
     cat_flag <- is.factor(data[, col_x]) | is.character(data[, col_x])
     ggplot(dt_sample, aes_string(x = col_x)) + 
-      geom_histogram(stat = ifelse(cat_flag, 'count', 'bin'), ...) 
+      geom_histogram(stat = ifelse(cat_flag, 'count', 'bin'), 
+        fill = 'cornflowerblue', ...) +
+      labs(x = NULL, title = col_x) + 
+      theme_classic() +
+      theme(axis.text.x = element_text(angle=25, hjust=1),
+        rect = element_rect(linetype = 0, color = NA),
+        axis.line.x = element_line(), axis.line.y = element_line(),
+        strip.background = element_blank(),
+        plot.title = element_text(hjust = 0.5))
   })
   
   cowplot::plot_grid(plotlist = plot_list, ncol = ncol)
 }
 
+# data <- rpart::stagec
+# ggdistr(data[, 1:5])
