@@ -1,8 +1,8 @@
-#' Plot the distribution (geom_histogram) of each column in the given data frame. If the data is 
-#' categorical data (factor or character), the statistics is set as "count". 
-#' Otherwise, it is set as "bin"
+#' Plot the distribution (geom_histogram) of each column in the given data frame. 
+#' If the data is categorical data (factor or character), the statistics is set 
+#' as "count". Otherwise, it is set as "bin". 
 #' 
-#' \code{plot.distr} plot the histogram/bar for numeric/categorical variables
+#' \code{ggdistr} plot the data distribution (histogram/bar for numeric/categorical variables)
 #' 
 #' @param data The data frame used for plot
 #' @param n_sample Number of samples used for the plot. If it is NULL, then all 
@@ -14,10 +14,10 @@
 #'    
 #' @examples
 #' data <- rpart::stagec
-#' plot.distr(data)
+#' ggdistr(data)
 #' @export
 
-plot.distr <- function(data, n_sample=NULL, ncol=3, sample_seed = 123, ...) {
+ggdistr <- function(data, n_sample=NULL, ncol=3, sample_seed = 123, ...) {
   set.seed(sample_seed)
   if(is.null(n_sample)) {
     n_sample <- nrow(data)

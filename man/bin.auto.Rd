@@ -2,7 +2,7 @@
 % Please edit documentation in R/bin_auto.R
 \name{bin.auto}
 \alias{bin.auto}
-\title{Bin numeric variables using \code{bin.rpart} and \code{bin.custom} automatically.}
+\title{Bin numeric variables using \code{bin.rpart} and \code{bin.custom} automatically}
 \usage{
 bin.auto(data, x_num = NULL, y)
 }
