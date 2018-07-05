@@ -1,6 +1,6 @@
 #' Plot the distribution (geom_histogram) of each column in the given data frame. If the data is 
 #' categorical data (factor or character), the statistics is set as "count". 
-#' Otherwise, it is set as "bin". 
+#' Otherwise, it is set as "bin"
 #' 
 #' \code{plot.distr} plot the histogram/bar for numeric/categorical variables
 #' 

@@ -2,9 +2,7 @@
 % Please edit documentation in R/bin_auto.R
 \name{bin.auto}
 \alias{bin.auto}
-\title{Bin numeric variables using \code{bin.rpart} and \code{bin.custom} automatically. 
-\code{bin.rpart} is tried first. If no bin is found, then \code{bin.custom} is 
-used to bin the variable using the cut pionts of 20%, 40%, 60%, and 80% quantiles.}
+\title{Bin numeric variables using \code{bin.rpart} and \code{bin.custom} automatically.}
 \usage{
 bin.auto(data, x_num = NULL, y)
 }
@@ -20,6 +18,10 @@ are used.}
 a list containing cut points and bins
 }
 \description{
+\code{bin.rpart} is tried first. If no bin is found, then \code{bin.custom} is 
+used to bin the variable using the cut pionts of 20%, 40%, 60%, and 80% quantiles.
+}
+\details{
 \code{bin.auto} automatically bin a list of numeric variables, and return the 
 cut points and bins
 }

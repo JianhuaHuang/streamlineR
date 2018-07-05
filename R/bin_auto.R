@@ -1,4 +1,5 @@
-#' Bin numeric variables using \code{bin.rpart} and \code{bin.custom} automatically. 
+#' Bin numeric variables using \code{bin.rpart} and \code{bin.custom} automatically
+#' 
 #' \code{bin.rpart} is tried first. If no bin is found, then \code{bin.custom} is 
 #' used to bin the variable using the cut pionts of 20%, 40%, 60%, and 80% quantiles. 
 #' 
