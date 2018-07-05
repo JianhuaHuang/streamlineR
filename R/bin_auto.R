@@ -27,11 +27,15 @@ bin.auto <- function(data, x_num=NULL, y) {
   x_bin <- lapply(x_num, function(x) {
     # if no cut point is found, bin.rpart will return 'No Bin'
     # if there is an error, tryCatch will also return 'No Bin'
-    rs <- tryCatch(
-      bin.rpart(as.formula(paste(y, '~', x)), dt,
-        rcontrol = rpart.control(minbucket = 0.02 * nrow(data))), 
-      error = function(e) {'No Bin'}
-    )
+    invisible(
+      capture.output(
+        # using invisible(capture.output()) to depressed the printed cut.points
+        rs <- tryCatch(
+          bin.rpart(as.formula(paste(y, '~', x)), dt,
+            rcontrol = rpart.control(minbucket = 0.02 * nrow(data))), 
+          error = function(e) {'No Bin'})
+        )
+      )
     
     if(identical(rs, 'No Bin')) {
       cut.points = unique(quantile((data[, x]), 1:5 * .2, na.rm = T))
@@ -40,7 +44,7 @@ bin.auto <- function(data, x_num=NULL, y) {
     }
     
     cat('\n============\n')
-    cat(paste(x, 'cut.points:', paste(rs$cut.points, collapse = ' ')))
+    cat(c(x, ' cut.points: ', rs$cut.points))
     print(table(rs$bins))
     return(rs)
   })
