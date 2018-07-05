@@ -39,8 +39,9 @@ bin.auto <- function(data, x_num=NULL, y) {
       rs = list(cut.points = cut.points, bins = bins)   
     }
     
+    print(paste(x, 'cut.points:', paste(rs$cut.points, collapse = ' ')))
     print(table(rs$bins))
-    cat('\n==========\n')
+    print('\n==========\n')
     return(rs)
   })
   
