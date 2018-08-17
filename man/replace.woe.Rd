@@ -27,4 +27,3 @@ data <- rpart::stagec
 st <- level.stat(data, x = c('eet', 'ploidy'), y = 'pgstat')
 replace.woe(data, stat = st)
 }
-

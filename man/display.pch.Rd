@@ -16,4 +16,3 @@ with slight pattern change.
 \examples{
 display.pch()
 }
-

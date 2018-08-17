@@ -4,7 +4,8 @@
 \alias{bin.rpart}
 \title{Bin numerical values based on recursive partitioning (rpart)}
 \usage{
-bin.rpart(formula, data, rcontrol = rpart.control(), n.group = NULL, ...)
+bin.rpart(formula, data, rcontrol = rpart.control(), n.group = NULL,
+  ...)
 }
 \arguments{
 \item{formula}{The formula for rpart}
@@ -38,4 +39,3 @@ argument of \emph{control} in \code{rpart} is named as \emph{rcontrol} in
 data <- rpart::stagec
 bin.rpart(pgstat ~ age, data = data)
 }
-

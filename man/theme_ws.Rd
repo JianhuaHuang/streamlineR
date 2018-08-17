@@ -19,4 +19,3 @@ ggplot(mtcars, aes(x = mpg, y = disp, color = as.factor(cyl))) +
   geom_point() + 
   theme_ws()
 }
-

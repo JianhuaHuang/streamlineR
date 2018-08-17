@@ -57,4 +57,3 @@ data <- rpart::stagec
 st <- level.stat(data, x = c('eet', 'ploidy'), y = 'pgstat')
 ggstat(st, theme = 'ws')
 }
-

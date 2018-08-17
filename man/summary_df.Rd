@@ -19,4 +19,3 @@ summary_df(data)
 data <- rpart::stagec
 summary_df(data)
 }
-

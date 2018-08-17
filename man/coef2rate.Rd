@@ -55,4 +55,3 @@ mod <- glm(pgstat ~ eet + grade + ploidy, data, family=binomial(link='logit'))
 st <- level.stat(data, y = 'pgstat')
 coef2rate(mod, data, st)
 }
-

@@ -39,4 +39,3 @@ manipulate(bin.knn(pgstat ~ age, data = data, n.group, min.bucket),
   min.bucket = slider(0.01, 1, step = 0.01, initial = 0.05,
   label = 'Minimum Population Size (\%)'))
 }
-

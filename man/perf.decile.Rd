@@ -37,4 +37,3 @@ mod <- glm(pgstat ~ ., dt.train, family=binomial(link='logit'))
 pred.test <- predict(mod, newdata = dt.test, type = 'response')
 perf.decile(actual = dt.test$pgstat, pred = pred.test)
 }
-

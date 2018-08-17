@@ -28,4 +28,3 @@ ggplot of the histogram/bar for all variables
 data <- rpart::stagec
 ggdistr(data)
 }
-

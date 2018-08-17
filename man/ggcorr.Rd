@@ -4,9 +4,9 @@
 \alias{ggcorr}
 \title{Generate the ggplot for a correlation matrix}
 \usage{
-ggcorr(cor.mat, lower = FALSE, psize = NULL, high = "red", low = "blue",
-  digits = 2, var.position = c("axis", "diagonal"), var.angle = 30,
-  add.legend = TRUE)
+ggcorr(cor.mat, lower = FALSE, psize = NULL, high = "red",
+  low = "blue", digits = 2, var.position = c("axis", "diagonal"),
+  var.angle = 30, add.legend = TRUE)
 }
 \arguments{
 \item{cor.mat}{A correlation matrix, usually generated with cor() function}
@@ -48,4 +48,3 @@ ggcorr(cor.mat, var.position = 'diagonal', high = 'blue', low = 'green',
 ggcorr(cor.mat, lower = TRUE, var.position = 'diagonal')
 
 }
-

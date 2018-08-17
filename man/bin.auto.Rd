@@ -30,4 +30,3 @@ data <- rpart::stagec
 x_num <- c('age', 'pgtime')
 bin.auto(data, x_num = x_num, y = 'pgstat')
 }
-

@@ -14,7 +14,8 @@ Depends:
     rpart,
     reshape2,
     survival, 
-    cowplot
+    cowplot, 
+    scales
 Description: This package is designed to streamline the modeling work,
     especially for scoring. It provides some handy function to bin numerical
     variables, replace numerical variables with Weight of Evidence (WOE), ranking
@@ -26,4 +27,4 @@ License: MIT + file LICENSE
 LazyData: yes
 URL: http://github.com/JianhuaHuang/streamlineR
 BugReports: http://github.com/JianhuaHuang/streamlineR/issues
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.0

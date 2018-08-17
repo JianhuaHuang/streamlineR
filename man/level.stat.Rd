@@ -31,4 +31,3 @@ in the given independent variables.
 data <- rpart::stagec
 level.stat(data, x = c('eet', 'ploidy'), y = 'pgstat')
 }
-

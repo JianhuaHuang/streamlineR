@@ -4,7 +4,8 @@
 \alias{bin.custom}
 \title{Generate bins based on given cut points}
 \usage{
-bin.custom(x, cut.p, names = NULL, name.style = c("report", "scientific"))
+bin.custom(x, cut.p, names = NULL, name.style = c("report",
+  "scientific"))
 }
 \arguments{
 \item{x}{The numerical data needs to be cut}
@@ -27,4 +28,3 @@ points. It also gives you the flexibility of naming the bins.
 \examples{
 bin.custom(1:100, cut.p = c(20, 50, 80))
 }
-
